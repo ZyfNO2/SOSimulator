@@ -1,0 +1,51 @@
+[
+  {
+    "id": "energy",
+    "name": "精力",
+    "kind": "resource",
+    "kindLabel": "资源",
+    "note": "还有余温的清醒时刻。",
+    "accent": "resource"
+  },
+  {
+    "id": "time",
+    "name": "时间",
+    "kind": "resource",
+    "kindLabel": "资源",
+    "note": "会流逝，也能被交换。",
+    "accent": "time"
+  },
+  {
+    "id": "poor-clue",
+    "name": "贫瘠线索",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "一切都像是偶然，但又不完全像。",
+    "accent": "clue"
+  },
+  {
+    "id": "daily-work",
+    "name": "日常工作",
+    "kind": "routine",
+    "kindLabel": "日常",
+    "note": "稳定、乏味、暂时有用。",
+    "accent": "routine"
+  },
+  {
+    "id": "event-card",
+    "name": "事件",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "投入不同的子牌，会导向不同的结果。",
+    "details": "这是一个分支事件卡。你可以把资源叠到它上面，不同子牌会触发不同产出或消耗结果。",
+    "accent": "event"
+  },
+  {
+    "id": "money",
+    "name": "金钱",
+    "kind": "resource",
+    "kindLabel": "资源",
+    "note": "可流动的日常回报。",
+    "accent": "money"
+  }
+]

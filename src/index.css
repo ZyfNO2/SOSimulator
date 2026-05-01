@@ -1,0 +1,62 @@
+:root {
+  --bg: #c6af97;
+  --bg-deep: #8e735c;
+  --border: #cfbea8;
+  --text: #4f3a29;
+  --text-soft: #6d5543;
+  --text-strong: #24180f;
+  --accent: #8e3e13;
+  --heading: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', serif;
+  --body: 'Avenir Next', 'Segoe UI', 'PingFang SC', sans-serif;
+  --mono: 'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
+  font: 18px/1.6 var(--body);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(255, 241, 222, 0.46), transparent 34%),
+    linear-gradient(180deg, var(--bg), var(--bg-deep));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+p,
+ul {
+  margin: 0;
+}
+
+h1 {
+  font-family: var(--heading);
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  color: var(--text-strong);
+  margin: 14px 0 18px;
+}
+
+ul {
+  padding: 0;
+}
+
+code {
+  font-family: var(--mono);
+}

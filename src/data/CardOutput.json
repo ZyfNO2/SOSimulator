@@ -1,0 +1,34 @@
+[
+  {
+    "id": "daily-work-energy-money",
+    "parentDefinitionId": "daily-work",
+    "childDefinitionId": "energy",
+    "durationMs": 5000,
+    "outputDefinitionId": "money",
+    "consumeChild": true
+  },
+  {
+    "id": "event-energy-money",
+    "parentDefinitionId": "event-card",
+    "childDefinitionId": "energy",
+    "durationMs": 4000,
+    "outputDefinitionId": "money",
+    "consumeChild": true
+  },
+  {
+    "id": "event-time-energy",
+    "parentDefinitionId": "event-card",
+    "childDefinitionId": "time",
+    "durationMs": 4000,
+    "outputDefinitionId": "energy",
+    "consumeChild": true
+  },
+  {
+    "id": "event-money-empty",
+    "parentDefinitionId": "event-card",
+    "childDefinitionId": "money",
+    "durationMs": 4000,
+    "outputDefinitionId": null,
+    "consumeChild": true
+  }
+]
