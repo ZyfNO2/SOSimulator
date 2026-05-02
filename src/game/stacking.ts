@@ -73,9 +73,10 @@ export function getSnappedCardPosition(
       continue
     }
 
-    // Allow SOS room to accept multiple children via chain
-    // For non-SOS cards, skip if target already has a different child
-    if (targetCard.childCardId && targetCard.childCardId !== movingCardId && !targetCard.isSOSRoom) {
+    // Allow SOS room or electronics store to accept multiple children via chain
+    // For other non-SOS cards, skip if target already has a different child
+    const isChainableTarget = targetCard.isSOSRoom || targetCard.definitionId === 'electronics-store'
+    if (targetCard.childCardId && targetCard.childCardId !== movingCardId && !isChainableTarget) {
       continue
     }
 
@@ -150,9 +151,10 @@ export function updateStackRelationship(
     ? cards.find((card) => card.id === nextParentCardId)
     : null
 
-  // For SOS room, attach to the end of the child chain instead of replacing
+  // For SOS room or electronics store, attach to the end of the child chain instead of replacing
   let actualParentId = nextParentCardId
-  if (nextParentCard?.isSOSRoom && nextParentCard.childCardId) {
+  const isChainableParent = nextParentCard?.isSOSRoom || nextParentCard?.definitionId === 'electronics-store'
+  if (isChainableParent && nextParentCard?.childCardId) {
     // Find the last member in the chain
     let lastMemberId = nextParentCard.childCardId
     let lastMember = cards.find((c) => c.id === lastMemberId)

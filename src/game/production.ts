@@ -49,21 +49,34 @@ export function getProductionMatches(
         const childCard = cards.find((c) => c.id === currentMemberId)
         if (!childCard) break
 
-        const rule = cardOutputRules.find((candidate) => {
+        // Find matching rule: prefer exact definitionId match over kind match
+        const exactRule = cardOutputRules.find((candidate) => {
           const parentMatch = candidate.parentDefinitionId
             ? candidate.parentDefinitionId === parentCard.definitionId
-            : candidate.parentKind
-              ? candidate.parentKind === parentCard.kind
-              : false
-
+            : false
           const childMatch = candidate.childDefinitionId
             ? candidate.childDefinitionId === childCard.definitionId
             : candidate.childKind
               ? candidate.childKind === childCard.kind
               : false
-
           return parentMatch && childMatch
         })
+
+        const kindRule = !exactRule ? cardOutputRules.find((candidate) => {
+          const parentMatch = candidate.parentDefinitionId
+            ? false
+            : candidate.parentKind
+              ? candidate.parentKind === parentCard.kind
+              : false
+          const childMatch = candidate.childDefinitionId
+            ? candidate.childDefinitionId === childCard.definitionId
+            : candidate.childKind
+              ? candidate.childKind === childCard.kind
+              : false
+          return parentMatch && childMatch
+        }) : null
+
+        const rule = exactRule || kindRule
 
         if (rule) {
           const pairKey = `${rule.id}:${parentCard.id}:${childCard.id}`
@@ -87,21 +100,34 @@ export function getProductionMatches(
       continue
     }
 
-    const rule = cardOutputRules.find((candidate) => {
+    // Find matching rule: prefer exact definitionId match over kind match
+    const exactRule = cardOutputRules.find((candidate) => {
       const parentMatch = candidate.parentDefinitionId
         ? candidate.parentDefinitionId === parentCard.definitionId
-        : candidate.parentKind
-          ? candidate.parentKind === parentCard.kind
-          : false
-
+        : false
       const childMatch = candidate.childDefinitionId
         ? candidate.childDefinitionId === childCard.definitionId
         : candidate.childKind
           ? candidate.childKind === childCard.kind
           : false
-
       return parentMatch && childMatch
     })
+
+    const kindRule = !exactRule ? cardOutputRules.find((candidate) => {
+      const parentMatch = candidate.parentDefinitionId
+        ? false
+        : candidate.parentKind
+          ? candidate.parentKind === parentCard.kind
+          : false
+      const childMatch = candidate.childDefinitionId
+        ? candidate.childDefinitionId === childCard.definitionId
+        : candidate.childKind
+          ? candidate.childKind === childCard.kind
+          : false
+      return parentMatch && childMatch
+    }) : null
+
+    const rule = exactRule || kindRule
 
     if (!rule) {
       continue

@@ -199,9 +199,9 @@
     "consumeChild": false
   },
   {
-    "id": "level2-blackmail-president-computer",
-    "parentDefinitionId": "blackmail",
-    "childDefinitionId": "computer-club-president",
+    "id": "level2-president-blackmail-computer",
+    "parentDefinitionId": "computer-club-president",
+    "childDefinitionId": "blackmail",
     "durationMs": 3000,
     "event": "交易达成",
     "outputDefinitionId": "computer",
@@ -247,9 +247,9 @@
     "id": "level2-electronics-store-yen-computer",
     "parentDefinitionId": "electronics-store",
     "childDefinitionId": "yen",
-    "durationMs": 3000,
-    "event": "购买电脑",
-    "outputDefinitionId": "computer",
+    "durationMs": 1000,
+    "event": "支付日元",
+    "outputDefinitionId": null,
     "consumeChild": true
   }
 ]

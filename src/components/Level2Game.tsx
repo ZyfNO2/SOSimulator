@@ -51,9 +51,17 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
   const levelConfig = useMemo(() => createLevel2Config(), [])
 
   const canProduceCheck = useCallback(
-    (rule: { outputDefinitionId?: string | null; outputPool?: string[] }, _parent: TableCard, _child: TableCard, allCards: TableCard[]) => {
+    (rule: { id?: string; outputDefinitionId?: string | null; outputPool?: string[] }, parentCard: TableCard, _child: TableCard, allCards: TableCard[]) => {
       // 电脑唯一性检测
       if (rule.outputDefinitionId === 'computer') {
+        // 电子城需要累计4个日元才能产出电脑
+        if (rule.id === 'level2-electronics-store-yen-computer') {
+          const descendantIds = getDescendantIds(allCards, parentCard.id)
+          const yenCount = Array.from(descendantIds).filter((id) =>
+            allCards.some((c) => c.id === id && c.definitionId === 'yen')
+          ).length
+          return yenCount >= 4 && !allCards.some((c) => c.definitionId === 'computer')
+        }
         return !allCards.some((c) => c.definitionId === 'computer')
       }
       // 日元产出无限制
@@ -71,6 +79,7 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
   const [haruhiBoredomMs, setHaruhiBoredomMs] = useState(0)
   const haruhiBoredomRef = useRef(0)
   const [ending, setEnding] = useState<'victory' | 'failure' | null>(null)
+  const [electronicsStoreYenCount, setElectronicsStoreYenCount] = useState(0)
 
   const addLog = useCallback((message: string) => {
     logSequenceRef.current += 1
@@ -171,14 +180,13 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
     }
   }, [cards, productions, addLog, ending])
 
-  // Victory condition: produce computer
+  // Victory condition: electronics store consumed 4 yen
   useEffect(() => {
-    const computerCard = cards.find((c) => c.definitionId === 'computer')
-    if (computerCard && !ending) {
-      addLog('SOS团获得了新电脑！')
+    if (electronicsStoreYenCount >= 4 && !ending) {
+      addLog('攒够了钱！SOS团获得了新电脑！')
       queueMicrotask(() => setEnding('victory'))
     }
-  }, [cards, ending, addLog])
+  }, [electronicsStoreYenCount, ending, addLog])
 
   // Recipe detection
   useEffect(() => {
@@ -368,10 +376,74 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
             addLog(`「${run.event}」完成：${parentName} + ${childName} → 获得${outputName}`)
           }
 
-          // After part-time job finishes, unmark character as working
+          // Electronics store yen consumption: increment counter instead of spawning computer
+          if (parentCard?.definitionId === 'electronics-store' && childCard?.definitionId === 'yen') {
+            setElectronicsStoreYenCount((prev) => {
+              const newCount = prev + 1
+              addLog(`电子城已支付 ${newCount}/4 日元……`)
+              return newCount
+            })
+          }
+
+          // After part-time job finishes: detach child, mark as working (gray + non-interactive), spawn closed spaces for Haruhi
           if (parentCard?.definitionId === CONVENIENCE_STORE_DEF_ID && CHARACTER_DEF_IDS.includes(childCard?.definitionId ?? '')) {
-            nextCards = nextCards.map((c) => c.id === childCard?.id ? { ...c, isWorking: false } : c)
-            addLog(`${childCard?.customName ?? childCard?.name}打工结束了。`)
+            // Detach the character from the convenience store (pop it out)
+            nextCards = nextCards.map((c) => {
+              if (c.id === childCard?.id) {
+                return { ...c, parentCardId: null, isWorking: true }
+              }
+              if (c.id === run.parentCardId) {
+                return { ...c, childCardId: null }
+              }
+              return c
+            })
+            addLog(`${childCard?.customName ?? childCard?.name}打工结束了，累得动弹不得……`)
+
+            // Haruhi special punishment: spawn 5 closed spaces after job ends
+            if (childCard?.definitionId === 'haruhi') {
+              addLog('凉宫春日打工完毕，但她的忧郁引发了异变！')
+              const closedSpaceDef = cardDefinitionMap.get('closed-space')
+              if (closedSpaceDef) {
+                const boardBounds = boardRef.current?.getBoundingClientRect()
+                const boardW = boardBounds?.width ?? 1200
+                const boardH = boardBounds?.height ?? 800
+                const centerX = boardW / 2
+                const centerY = boardH / 2
+
+                for (let i = 0; i < 2; i++) {
+                  instanceSequenceRef.current += 1
+                  const angle = (Math.PI * 2 * i) / 2 + Math.random() * 0.5
+                  const distance = 80 + Math.random() * 120
+                  const targetX = clamp(centerX - 59 + Math.cos(angle) * distance, 0, Math.max(boardW - 118, 0))
+                  const targetY = clamp(centerY - 78 + Math.sin(angle) * distance, 0, Math.max(boardH - 157, 0))
+
+                  const newClosedSpace = {
+                    id: `closed-space-${instanceSequenceRef.current}`,
+                    definitionId: closedSpaceDef.id,
+                    name: closedSpaceDef.name,
+                    kind: closedSpaceDef.kind,
+                    kindLabel: closedSpaceDef.kindLabel,
+                    note: closedSpaceDef.note,
+                    accent: closedSpaceDef.accent,
+                    x: targetX,
+                    y: targetY,
+                    parentCardId: null,
+                    childCardId: null,
+                    spawnedAtMs: Date.now(),
+                    spawnOriginX: centerX - 59,
+                    spawnOriginY: centerY - 78,
+                  }
+                  nextCards = [...nextCards, newClosedSpace]
+                }
+                addLog('2个闭锁空间同时出现了！')
+
+                const closedSpaceCount = nextCards.filter((c) => c.definitionId === 'closed-space').length
+                if (closedSpaceCount >= 6) {
+                  addLog('闭锁空间吞噬了一切……世界终结了。')
+                  queueMicrotask(() => setEnding('failure'))
+                }
+              }
+            }
           }
         }
 
@@ -563,6 +635,12 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
         </div>
       </div>
 
+      {/* Electronics store yen counter */}
+      <div className="electronics-store-counter">
+        <span className="counter-label">电子城存款</span>
+        <span className="counter-value">{electronicsStoreYenCount} / 4 日元</span>
+      </div>
+
       <section ref={boardRef} className="table" aria-label="SOS团活动室桌面">
         <div className="table-noise" aria-hidden="true" />
 
@@ -623,6 +701,7 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
             setShakingCardId(null)
             setHaruhiBoredomMs(0)
             haruhiBoredomRef.current = 0
+            setElectronicsStoreYenCount(0)
             setEnding(null)
             productionSequenceRef.current = 0
             instanceSequenceRef.current = 0
@@ -649,6 +728,7 @@ export function Level2Game({ onBackToMenu }: Level2GameProps) {
             setShakingCardId(null)
             setHaruhiBoredomMs(0)
             haruhiBoredomRef.current = 0
+            setElectronicsStoreYenCount(0)
             setEnding(null)
             productionSequenceRef.current = 0
             instanceSequenceRef.current = 0
