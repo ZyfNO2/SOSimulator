@@ -19,12 +19,13 @@ export function getProductionMatches(cards: TableCard[]) {
 
   for (const startCard of cards) {
     for (const rule of cardOutputRules) {
-      const inputCards = getMatchedInputCards(cards, startCard.id, rule.inputDefinitionIds)
+      const matchedInputs = getMatchedInputCards(cards, startCard.id, rule)
 
-      if (!inputCards) {
+      if (!matchedInputs) {
         continue
       }
 
+      const inputCards = matchedInputs.cards
       const pairKey = `${rule.id}:${inputCards.map((card) => card.id).join(':')}`
 
       if (matchKeys.has(pairKey)) {
@@ -35,7 +36,12 @@ export function getProductionMatches(cards: TableCard[]) {
       matches.push({
         pairKey,
         inputCards,
-        rule,
+        rule: matchedInputs.isReversed
+          ? {
+              ...rule,
+              consumeInputIndexes: [...rule.consumeInputIndexes].reverse(),
+            }
+          : rule,
       })
     }
   }
@@ -46,19 +52,74 @@ export function getProductionMatches(cards: TableCard[]) {
 function getMatchedInputCards(
   cards: TableCard[],
   startCardId: string,
-  inputDefinitionIds: string[],
+  rule: ProductionMatch['rule'],
 ) {
+  const inputDefinitionIds = rule.inputDefinitionIds
   const directMatch = getMatchedInputCardsInOrder(cards, startCardId, inputDefinitionIds)
 
   if (directMatch) {
-    return directMatch
+    return {
+      cards: directMatch,
+      isReversed: false,
+    }
   }
 
   if (inputDefinitionIds.length === 2) {
-    return getMatchedInputCardsInOrder(cards, startCardId, [...inputDefinitionIds].reverse())
+    const reversedMatch = getMatchedInputCardsInOrder(
+      cards,
+      startCardId,
+      [...inputDefinitionIds].reverse(),
+    )
+
+    if (reversedMatch) {
+      return {
+        cards: reversedMatch,
+        isReversed: true,
+      }
+    }
+  }
+
+  if (inputDefinitionIds.length > 2) {
+    const [fixedDefinitionId, ...tailDefinitionIds] = inputDefinitionIds
+    const tailPermutations = getPermutations(tailDefinitionIds)
+
+    for (const tailPermutation of tailPermutations) {
+      const candidateOrder = [fixedDefinitionId, ...tailPermutation]
+
+      if (candidateOrder.join('\u0000') === inputDefinitionIds.join('\u0000')) {
+        continue
+      }
+
+      const permutationMatch = getMatchedInputCardsInOrder(cards, startCardId, candidateOrder)
+
+      if (permutationMatch) {
+        return {
+          cards: permutationMatch,
+          isReversed: false,
+        }
+      }
+    }
   }
 
   return null
+}
+
+function getPermutations(values: string[]): string[][] {
+  if (values.length <= 1) {
+    return [values]
+  }
+
+  const permutations: string[][] = []
+
+  values.forEach((value, index) => {
+    const remainingValues = [...values.slice(0, index), ...values.slice(index + 1)]
+
+    getPermutations(remainingValues).forEach((permutation) => {
+      permutations.push([value, ...permutation])
+    })
+  })
+
+  return permutations
 }
 
 function getMatchedInputCardsInOrder(

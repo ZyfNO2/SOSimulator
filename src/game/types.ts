@@ -18,6 +18,7 @@ export type TableCard = {
   decayOutputDefinitionIds?: string[]
   isMother?: boolean
   refillStartedAtMs?: number | null
+  refillDurationMs?: number | null
 }
 
 export type DragState = {
@@ -62,6 +63,7 @@ export type CardOutputRule = {
   event: string
   outputDefinitionIds: string[]
   consumeInputIndexes: boolean[]
+  allowUnorderedTail?: boolean
   outputCardOverrides?: OutputCardOverride[]
 }
 

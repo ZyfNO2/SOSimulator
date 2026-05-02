@@ -5,6 +5,7 @@ import {
   CARD_TITLE_LINE_OFFSET,
   CARD_UNSNAP_EXTRA_THRESHOLD,
   CARD_WIDTH,
+  RESOURCE_MOTHER_MAX_QUANTITY,
 } from './constants'
 import type { TableCard } from './types'
 
@@ -77,10 +78,16 @@ export function getSnappedCardPosition(
   }
 
   for (const targetCard of cards) {
+    const canSnapBackToMother =
+      targetCard.isMother === true &&
+      movingCard.kind === 'resource' &&
+      targetCard.kind === 'resource' &&
+      targetCard.definitionId === movingCard.definitionId
+
     if (
       targetCard.id === movingCardId ||
       blockedTargetIds.has(targetCard.id) ||
-      targetCard.isMother
+      (targetCard.isMother && !canSnapBackToMother)
     ) {
       continue
     }
@@ -211,8 +218,7 @@ export function mergeStackedResourceCards(cards: TableCard[], movingCardId: stri
   if (
     !parentCard ||
     parentCard.kind !== 'resource' ||
-    parentCard.definitionId !== movingCard.definitionId ||
-    parentCard.isMother
+    parentCard.definitionId !== movingCard.definitionId
   ) {
     return cards
   }
@@ -226,7 +232,9 @@ export function mergeStackedResourceCards(cards: TableCard[], movingCardId: stri
       if (card.id === parentCard.id) {
         return {
           ...card,
-          quantity: parentQuantity + movingQuantity,
+          quantity: parentCard.isMother
+            ? Math.min(parentQuantity + movingQuantity, RESOURCE_MOTHER_MAX_QUANTITY)
+            : parentQuantity + movingQuantity,
           childCardId: null,
         }
       }

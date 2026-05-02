@@ -1,5 +1,5 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { CARD_SPAWN_ANIMATION_MS, RESOURCE_MOTHER_REFILL_MS } from '../game/constants'
+import { CARD_SPAWN_ANIMATION_MS } from '../game/constants'
 import { getCardZIndex } from '../game/stacking'
 import type { TableCard } from '../game/types'
 
@@ -34,6 +34,8 @@ export function CardView({
     nowMs >= card.spawnedAtMs &&
     nowMs - card.spawnedAtMs < CARD_SPAWN_ANIMATION_MS
   const isMother = card.isMother === true
+  const hasCountdown =
+    typeof card.refillStartedAtMs === 'number' && typeof card.refillDurationMs === 'number'
 
   return (
     <button
@@ -44,7 +46,7 @@ export function CardView({
       }${!hasStarted ? ' is-hidden-before-start' : ''}${
         isWaitingToSpawn ? ' is-waiting-spawn' : ''
       }${isMother ? ' is-mother-card' : ''}${
-        typeof card.refillStartedAtMs === 'number' ? ' is-refilling' : ''
+        hasCountdown ? ' has-countdown' : ''
       }`}
       style={
         {
@@ -52,10 +54,13 @@ export function CardView({
           '--card-y': `${card.y}px`,
           '--spawn-origin-x': `${card.spawnOriginX ?? card.x}px`,
           '--spawn-origin-y': `${card.spawnOriginY ?? card.y}px`,
-          '--refill-progress':
-            typeof card.refillStartedAtMs === 'number'
+          '--refill-progress': hasCountdown
               ? `${Math.min(
-                  Math.max((nowMs - card.refillStartedAtMs) / RESOURCE_MOTHER_REFILL_MS, 0),
+                  Math.max(
+                    (nowMs - (card.refillStartedAtMs ?? 0)) /
+                      Math.max(card.refillDurationMs ?? 1, 1),
+                    0,
+                  ),
                   1,
                 )}`
               : '0',

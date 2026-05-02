@@ -7,17 +7,17 @@
       {
         "childDefinitionId": "energy",
         "title": "继续追查",
-        "description": "消耗精力，从失物招领室里榨出一点贫瘠线索。"
+        "description": "让它沾上一点精力，沉在底下的东西就会开始松动。"
       },
       {
         "childDefinitionId": "time",
         "title": "扩大走访",
-        "description": "消耗时间，换来蓝伞和更多可供拼接的传闻碎片。"
+        "description": "只要肯往里再压一些时间，这件事就会慢慢露出更具体的轮廓。"
       },
       {
         "childDefinitionId": "money",
         "title": "翻找旧资料",
-        "description": "用一点现实手段，换取广播站旧照片之类更像证据的东西。"
+        "description": "给它配上一点现实手段，旧档案和被遗忘的边角就会自己浮上来。"
       }
     ]
   },
@@ -29,17 +29,17 @@
       {
         "childDefinitionId": "time",
         "title": "整理口供",
-        "description": "把传闻慢慢压成矛盾记录，越整理越觉得不对。"
+        "description": "让时间在这些话头上多停一会儿，里面的裂缝会自己变明显。"
       },
       {
         "childDefinitionId": "money",
         "title": "翻拍存档",
-        "description": "花钱找旧资料，容易挖出广播站照片这种半真半假的证据。"
+        "description": "若肯为旧档案付出一点代价，模糊不清的旁证就会慢慢聚过来。"
       },
       {
         "childDefinitionId": "haruhi",
         "title": "让春日介入",
-        "description": "一旦让春日正式卷进来，证词就会开始朝执念的方向偏移。"
+        "description": "只要把春日真正牵进来，这些说法就会不自觉地朝某个偏执的方向拧过去。"
       }
     ]
   },
@@ -51,17 +51,17 @@
       {
         "childDefinitionId": "kyon-doubt",
         "title": "坚持现实",
-        "description": "阿虚的怀疑会压出一层现实阻力，但那层阻力并不稳定。"
+        "description": "拿阿虚的怀疑去碰它，桌面上会短暂出现一股不肯让步的现实感。"
       },
       {
         "childDefinitionId": "haruhi-obsession",
         "title": "继续补完",
-        "description": "把春日的执念继续压上去，失主会更像一个真正的人。"
+        "description": "再把春日那股不肯放手的劲压上去，它就会长出更完整的轮廓。"
       },
       {
         "childDefinitionId": "world-distortion",
         "title": "接受异常",
-        "description": "如果任由世界异常继续发酵，终局很快就会被雨拖进来。"
+        "description": "若你不拦着异常蔓延，雨幕很快就会自己把终局拖近。"
       }
     ]
   },
@@ -73,17 +73,17 @@
       {
         "childDefinitionId": "kyon-doubt",
         "title": "认领现实",
-        "description": "阿虚的怀疑会把事情往可落地的答案上压。"
+        "description": "把阿虚的怀疑压上来，这场雨就可能往一个能落地的解释那边偏。"
       },
       {
         "childDefinitionId": "imaginary-owner",
         "title": "承认虚构",
-        "description": "如果失主已经被故事补完，雨里就会真的走出一个人。"
+        "description": "要是那个被编织出来的轮廓已经够完整，雨里就会有什么东西回应你。"
       },
       {
         "childDefinitionId": "world-distortion",
         "title": "放任失控",
-        "description": "继续让异常主导叙事，世界就会比结局先一步裂开。"
+        "description": "继续让异常握着叙事不放，先撑不住的未必是故事本身。"
       }
     ]
   }

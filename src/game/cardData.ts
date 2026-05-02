@@ -7,8 +7,6 @@ import type {
   OutputCardOverride,
   TableCard,
 } from './types'
-
-export const cardDefinitions = cardKinds as CardDefinitionRecord[]
 type RawCardOutputRuleRecord = {
   id: string
   durationMs: number
@@ -16,6 +14,7 @@ type RawCardOutputRuleRecord = {
   inputDefinitionIds?: string[]
   outputDefinitionIds?: string[]
   consumeInputIndexes?: boolean[]
+  allowUnorderedTail?: boolean
   outputCardOverrides?: OutputCardOverride[]
   parentDefinitionId?: string
   childDefinitionId?: string
@@ -59,6 +58,35 @@ function getRuleConsumeInputIndexes(
   return inputDefinitionIds.map(() => false)
 }
 
+function normalizeDefinitionAccent(definition: CardDefinitionRecord): CardDefinitionRecord {
+  switch (definition.kind) {
+    case 'resource':
+      return {
+        ...definition,
+        accent: 'resource',
+      }
+    case 'location':
+      return {
+        ...definition,
+        accent: 'time',
+      }
+    case 'character':
+      return {
+        ...definition,
+        accent: 'character',
+      }
+    case 'state':
+    case 'ending':
+    case 'event':
+      return {
+        ...definition,
+        accent: 'event',
+      }
+    default:
+      return definition
+  }
+}
+
 function normalizeCardOutputRule(rule: RawCardOutputRuleRecord): CardOutputRule {
   const inputDefinitionIds = getRuleInputDefinitionIds(rule)
 
@@ -69,9 +97,14 @@ function normalizeCardOutputRule(rule: RawCardOutputRuleRecord): CardOutputRule 
     event: rule.event ?? '',
     outputDefinitionIds: getRuleOutputDefinitionIds(rule),
     consumeInputIndexes: getRuleConsumeInputIndexes(rule, inputDefinitionIds),
+    allowUnorderedTail: rule.allowUnorderedTail ?? false,
     outputCardOverrides: rule.outputCardOverrides,
   }
 }
+
+export const cardDefinitions = (cardKinds as CardDefinitionRecord[]).map(
+  normalizeDefinitionAccent,
+)
 
 export const cardOutputRules = (cardOutputs as RawCardOutputRuleRecord[]).map(
   normalizeCardOutputRule,
@@ -80,14 +113,19 @@ export const cardDefinitionMap = new Map(cardDefinitions.map((card) => [card.id,
 
 export const initialTableCardKinds: InitialTableCardRecord[] = [
   {
-    definitionId: 'blue-umbrella',
-    x: 80,
+    definitionId: 'haruhi-0',
+    x: 200,
     y: 92,
   },
   {
-    definitionId: 'event-card',
-    x: 228,
-    y: 82,
+    definitionId: 'shop',
+    x: 700,
+    y: 104,
+  },
+  {
+    definitionId: 'weather-sunny',
+    x: 858,
+    y: 88,
   },
   {
     definitionId: 'energy',
@@ -100,17 +138,6 @@ export const initialTableCardKinds: InitialTableCardRecord[] = [
     x: 164,
     y: 615,
     quantity: 2,
-  },
-  {
-    definitionId: 'daily-work',
-    x: 688,
-    y: 108,
-  },
-  {
-    definitionId: 'money',
-    x: 856,
-    y: 96,
-    quantity: 1
   },
 ]
 
@@ -147,6 +174,7 @@ export function createTableCardFromDefinition(
     decayOutputDefinitionIds: options?.decayOutputDefinitionIds,
     isMother: false,
     refillStartedAtMs: null,
+    refillDurationMs: null,
   }
 }
 

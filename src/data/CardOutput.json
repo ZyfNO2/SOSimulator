@@ -1,161 +1,156 @@
 [
   {
-    "id": "daily-work-energy-money",
-    "inputDefinitionIds": ["daily-work", "energy"],
-    "durationMs": 5000,
-    "event": "把无聊的一天勉强换成一点日常收入。",
+    "id": "shop-energy-money",
+    "inputDefinitionIds": ["shop", "energy"],
+    "durationMs": 3200,
+    "event": "在商店花掉一点精力，换回最现实也最通用的资源。",
     "outputDefinitionIds": ["money"],
-    "consumeInputIndexes": [false, false]
-  },
-  {
-    "id": "umbrella-room-energy-clue",
-    "inputDefinitionIds": ["event-card", "energy"],
-    "durationMs": 3600,
-    "event": "继续在失物招领室里翻找和追问。",
-    "outputDefinitionIds": ["poor-clue"],
     "consumeInputIndexes": [false, true]
   },
   {
-    "id": "umbrella-room-time-seed",
-    "inputDefinitionIds": ["event-card", "time"],
-    "durationMs": 4200,
-    "event": "花掉一点放学时间，把那把伞真正捞到桌面上来。",
-    "outputDefinitionIds": ["blue-umbrella", "poor-clue"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "umbrella-room-money-photo",
-    "inputDefinitionIds": ["event-card", "money"],
-    "durationMs": 4200,
-    "event": "用一点现实成本，从旧资料里换出更像证据的东西。",
-    "outputDefinitionIds": ["old-radio-photo"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "umbrella-poor-clue-testimony",
-    "inputDefinitionIds": ["blue-umbrella", "poor-clue"],
-    "durationMs": 3800,
-    "event": "线索第一次真的挂上了那把蓝伞。",
-    "outputDefinitionIds": ["vague-testimony", "haruhi", "event-testimony"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "testimony-time-record",
-    "inputDefinitionIds": ["event-testimony", "time"],
-    "durationMs": 4200,
-    "event": "把过于一致的说法一点点整理成矛盾记录。",
-    "outputDefinitionIds": ["contradictory-record"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "testimony-money-photo",
-    "inputDefinitionIds": ["event-testimony", "money"],
-    "durationMs": 4200,
-    "event": "花一点钱去翻旧广播站的存档照片。",
-    "outputDefinitionIds": ["old-radio-photo"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "testimony-haruhi-obsession",
-    "inputDefinitionIds": ["vague-testimony", "haruhi"],
-    "durationMs": 3800,
-    "event": "春日正式把这些模糊证词认定成了‘有问题的证据’。",
-    "outputDefinitionIds": ["haruhi-obsession"],
+    "id": "money-shop-material",
+    "inputDefinitionIds": ["money", "shop"],
+    "durationMs": 3200,
+    "event": "把钱继续丢进商店，换成 SOS 团下一步会用到的活动材料。",
+    "outputDefinitionIds": ["sos-material"],
     "consumeInputIndexes": [true, false]
   },
   {
-    "id": "umbrella-haruhi-obsession",
-    "inputDefinitionIds": ["blue-umbrella", "haruhi"],
+    "id": "material-haruhi0-haruhi1",
+    "inputDefinitionIds": ["sos-material", "haruhi-0"],
     "durationMs": 3600,
-    "event": "她盯着那把伞看得太久，于是执念先于答案生成。",
-    "outputDefinitionIds": ["haruhi-obsession"],
-    "consumeInputIndexes": [false, false]
-  },
-  {
-    "id": "record-time-missing-owner",
-    "inputDefinitionIds": ["contradictory-record", "time"],
-    "durationMs": 4400,
-    "event": "越往下查，失主越像一个查不到的存在。",
-    "outputDefinitionIds": ["missing-owner", "event-missing-owner"],
+    "event": "材料一到位，春日立刻把这件事升级成正式要追的目标。",
+    "outputDefinitionIds": ["haruhi-1"],
     "consumeInputIndexes": [true, true]
   },
   {
-    "id": "photo-umbrella-rainy-back",
-    "inputDefinitionIds": ["old-radio-photo", "blue-umbrella"],
-    "durationMs": 4000,
-    "event": "照片和蓝伞拼到一起，雨中的背影便开始有了方向。",
-    "outputDefinitionIds": ["rainy-back"],
+    "id": "haruhi1-time-energy-room0",
+    "inputDefinitionIds": ["haruhi-1", "time", "energy"],
+    "durationMs": 4200,
+    "event": "春日正式占用时间和精力，把失物招领室拖进了事件中心。",
+    "outputDefinitionIds": ["lost-and-found-room-0"],
+    "consumeInputIndexes": [false, true, true],
+    "allowUnorderedTail": true
+  },
+  {
+    "id": "room0-energy-umbrella0",
+    "inputDefinitionIds": ["lost-and-found-room-0", "energy"],
+    "durationMs": 3600,
+    "event": "再查一次失物招领室，那把蓝伞终于被真正翻了出来。",
+    "outputDefinitionIds": ["blue-umbrella-0"],
+    "consumeInputIndexes": [false, true]
+  },
+  {
+    "id": "umbrella0-room0-time-room1",
+    "inputDefinitionIds": ["lost-and-found-room-0", "blue-umbrella-0", "time"],
+    "durationMs": 4200,
+    "event": "顺着蓝伞继续往里查，失物招领室本身也被推到下一阶段。",
+    "outputDefinitionIds": ["lost-and-found-room-1"],
+    "consumeInputIndexes": [true, false, true],
+    "allowUnorderedTail": true
+  },
+  {
+    "id": "umbrella0-shop-umbrella1-testimony",
+    "inputDefinitionIds": ["blue-umbrella-0", "shop"],
+    "durationMs": 3800,
+    "event": "商店里的旧货信息证明，这把伞的型号早就不该还在流通。",
+    "outputDefinitionIds": ["blue-umbrella-1", "testimony"],
     "consumeInputIndexes": [true, false]
   },
   {
-    "id": "obsession-testimony-distortion",
-    "inputDefinitionIds": ["haruhi-obsession", "vague-testimony"],
-    "durationMs": 4200,
-    "event": "执念和证词互相证明，世界开始替春日补完答案。",
-    "outputDefinitionIds": ["world-distortion", "kyon"],
-    "consumeInputIndexes": [false, true]
-  },
-  {
-    "id": "kyon-distortion-doubt",
-    "inputDefinitionIds": ["kyon", "world-distortion"],
-    "durationMs": 3600,
-    "event": "阿虚终于开始怀疑，问题也许根本不是失主是谁。",
-    "outputDefinitionIds": ["kyon-doubt"],
-    "consumeInputIndexes": [false, false]
-  },
-  {
-    "id": "doubt-missing-owner-resistance",
-    "inputDefinitionIds": ["kyon-doubt", "missing-owner"],
+    "id": "umbrella1-haruhi1-obsession",
+    "inputDefinitionIds": ["blue-umbrella-1", "haruhi-1"],
     "durationMs": 3800,
-    "event": "怀疑与失主问题短暂地彼此抵消，现实被按住了一口气。",
-    "outputDefinitionIds": ["reality-resistance"],
-    "consumeInputIndexes": [true, true],
-    "outputCardOverrides": [
-      {
-        "definitionId": "reality-resistance",
-        "decayMs": 10000,
-        "decayOutputDefinitionIds": ["kyon-doubt", "missing-owner"]
-      }
-    ]
+    "event": "春日已经不肯接受平凡的解释，她的执念开始成形。",
+    "outputDefinitionIds": ["blue-umbrella-2", "haruhi-obsession"],
+    "consumeInputIndexes": [true, false]
   },
   {
-    "id": "missing-owner-obsession-imaginary",
-    "inputDefinitionIds": ["missing-owner", "haruhi-obsession"],
+    "id": "nagato0-testimony-nagato1",
+    "inputDefinitionIds": ["nagato-0", "testimony"],
+    "durationMs": 3600,
+    "event": "长门接过证词后，开始真正参与这场解释。",
+    "outputDefinitionIds": ["nagato-1"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "haruhi1-energy-haruhi2",
+    "inputDefinitionIds": ["haruhi-1", "energy", "haruhi-obsession"],
+    "durationMs": 3600,
+    "event": "春日继续投入行动力，她的介入程度又往前推了一层。",
+    "outputDefinitionIds": ["haruhi-2"],
+    "consumeInputIndexes": [true, true, true]
+  },
+  {
+    "id": "obsession-umbrella2-distortion-owner",
+    "inputDefinitionIds": ["haruhi-obsession", "blue-umbrella-2"],
     "durationMs": 4200,
-    "event": "春日继续相信下去，失主就会越来越像真的存在。",
-    "outputDefinitionIds": ["imaginary-owner"],
-    "consumeInputIndexes": [false, false]
-  },
-  {
-    "id": "distortion-rain-final-rain",
-    "inputDefinitionIds": ["world-distortion", "rainy-back"],
-    "durationMs": 4600,
-    "event": "世界异常和雨中的背影一起，把故事拖进最后一场雨。",
-    "outputDefinitionIds": ["final-rain", "event-final-rain"],
+    "event": "执念与升级后的蓝伞相互放大，世界开始失衡，失主的概念也被硬生生拼了出来。",
+    "outputDefinitionIds": ["world-distortion", "missing-owner"],
     "consumeInputIndexes": [false, true]
   },
   {
-    "id": "final-rain-doubt-return",
-    "inputDefinitionIds": ["final-rain", "kyon-doubt"],
+    "id": "energy-distortion-doubt",
+    "inputDefinitionIds": ["energy", "world-distortion"],
+    "durationMs": 3400,
+    "event": "越是靠近异常，阿虚的怀疑就越强。",
+    "outputDefinitionIds": ["kyon-doubt"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "doubt-nagato1-conclusion",
+    "inputDefinitionIds": ["kyon-doubt", "nagato-1"],
+    "durationMs": 3600,
+    "event": "怀疑得到长门的支撑后，终于沉淀成了一个像样的结论。",
+    "outputDefinitionIds": ["conclusion"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "doubt-owner-resistance",
+    "inputDefinitionIds": ["kyon-doubt", "missing-owner"],
+    "durationMs": 3600,
+    "event": "阿虚的怀疑与不存在的失主短暂对冲，世界勉强出现了一点现实阻力。",
+    "outputDefinitionIds": ["reality-resistance"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "owner-obsession-imaginary",
+    "inputDefinitionIds": ["missing-owner", "haruhi-obsession"],
+    "durationMs": 3800,
+    "event": "当春日的执念继续压上去，虚构失主就开始拥有真正的轮廓。",
+    "outputDefinitionIds": ["imaginary-owner"],
+    "consumeInputIndexes": [false, true]
+  },
+  {
+    "id": "haruhi2-material-haruhi3",
+    "inputDefinitionIds": ["haruhi-2", "sos-material"],
+    "durationMs": 3800,
+    "event": "春日把最后一层材料也压了进去，她离结局的触发点已经很近。",
+    "outputDefinitionIds": ["haruhi-3"],
+    "consumeInputIndexes": [true, true]
+  },
+  {
+    "id": "storm-distortion-haruhi3-collapse",
+    "inputDefinitionIds": ["weather-storm", "world-distortion", "haruhi-3"],
+    "durationMs": 5200,
+    "event": "暴雨、异常和春日的最高阶段叠在一起，世界直接坍向灭世线。",
+    "outputDefinitionIds": ["ending-collapse"],
+    "consumeInputIndexes": [true, true, true]
+  },
+  {
+    "id": "rain-conclusion-return",
+    "inputDefinitionIds": ["weather-rain", "conclusion"],
     "durationMs": 5000,
-    "event": "阿虚试图用一个足够现实的答案结束这一切。",
+    "event": "现实终于给出了一个能够落地的答案，阿虚认领了那把蓝色雨伞。",
     "outputDefinitionIds": ["ending-return"],
     "consumeInputIndexes": [true, true]
   },
   {
-    "id": "final-rain-imaginary-ending",
-    "inputDefinitionIds": ["final-rain", "imaginary-owner"],
+    "id": "rain-imaginary-ending",
+    "inputDefinitionIds": ["weather-rain", "imaginary-owner"],
     "durationMs": 5000,
-    "event": "如果失主已经被补完到足够真实，他就会真的从雨里走出来。",
+    "event": "如果故事被补完得足够彻底，虚构失主就会真的从雨里出现。",
     "outputDefinitionIds": ["ending-imaginary"],
     "consumeInputIndexes": [true, true]
-  },
-  {
-    "id": "final-rain-collapse-ending",
-    "inputDefinitionIds": ["final-rain", "haruhi-obsession", "world-distortion"],
-    "durationMs": 5200,
-    "event": "当执念和异常都压到最后一场雨上，世界就会先于结局失去边界。",
-    "outputDefinitionIds": ["ending-collapse"],
-    "consumeInputIndexes": [true, false, false]
   }
 ]

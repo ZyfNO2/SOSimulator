@@ -197,6 +197,10 @@
   color: var(--text-soft);
   font-size: 0.72rem;
   line-height: 1.45;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   position: relative;
   z-index: 1;
 }
@@ -228,7 +232,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-.card.is-mother-card.is-refilling::after {
+.card.has-countdown::after {
   content: '';
   position: absolute;
   left: 0;
@@ -300,6 +304,16 @@
 
 .card-event .card-kind-band {
   background: rgba(85, 64, 110, 0.18);
+}
+
+.card-character {
+  background:
+    linear-gradient(180deg, rgba(252, 242, 235, 0.98), rgba(232, 197, 181, 0.92)),
+    #dfb4a4;
+}
+
+.card-character .card-kind-band {
+  background: rgba(145, 86, 62, 0.18);
 }
 
 .card.is-spawning {
@@ -384,16 +398,26 @@
   cursor: pointer;
 }
 
+.event-detail-intro {
+  margin-top: 14px;
+}
+
+.event-detail-intro h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-strong);
+}
+
 .event-detail-note,
 .event-detail-copy {
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   color: var(--text-soft);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .event-detail-rules {
-  margin-top: 18px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(70, 51, 35, 0.12);
 }
 
@@ -410,10 +434,7 @@
 }
 
 .event-detail-rules li {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 10px 0;
+  padding: 8px 0;
   border-top: 1px solid rgba(70, 51, 35, 0.08);
 }
 
@@ -422,14 +443,10 @@
   padding-top: 0;
 }
 
-.event-detail-rules strong {
-  font-size: 0.96rem;
-  color: var(--text-strong);
-}
-
-.event-detail-rules span {
+.event-detail-rules p {
+  margin: 0;
   color: var(--text-soft);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .mainline-tray {

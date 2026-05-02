@@ -19,6 +19,7 @@ import {
   RESOURCE_MOTHER_PADDING_BOTTOM,
   RESOURCE_MOTHER_PADDING_LEFT,
   RESOURCE_MOTHER_REFILL_MS,
+  WEATHER_STAGE_ADVANCE_MS,
 } from './game/constants'
 import {
   getProductionAnchor,
@@ -49,6 +50,52 @@ import {
 } from './game/story'
 
 const MOTHER_CARD_DEFINITION_IDS = ['energy', 'time'] as const
+const WEATHER_DEFINITION_IDS = [
+  'weather-sunny',
+  'weather-cloudy',
+  'weather-shower',
+  'weather-rain',
+  'weather-storm',
+  'weather-downpour',
+] as const
+const WEATHER_DISCOVERY_TRIGGER_ID = 'trigger-umbrella'
+const FORCED_WEATHER_ENDING_DEFINITION_ID = 'ending-imaginary'
+
+function isWeatherDefinitionId(definitionId: string) {
+  return WEATHER_DEFINITION_IDS.includes(
+    definitionId as (typeof WEATHER_DEFINITION_IDS)[number],
+  )
+}
+
+function getNextWeatherDefinitionId(definitionId: string) {
+  const currentIndex = WEATHER_DEFINITION_IDS.indexOf(
+    definitionId as (typeof WEATHER_DEFINITION_IDS)[number],
+  )
+
+  if (currentIndex === -1 || currentIndex >= WEATHER_DEFINITION_IDS.length - 1) {
+    return null
+  }
+
+  return WEATHER_DEFINITION_IDS[currentIndex + 1]
+}
+
+function syncCardToDefinition(card: TableCard, definitionId: string) {
+  const definition = cardDefinitionMap.get(definitionId)
+
+  if (!definition) {
+    return card
+  }
+
+  return {
+    ...card,
+    definitionId: definition.id,
+    name: definition.name,
+    kind: definition.kind,
+    kindLabel: definition.kindLabel,
+    note: definition.note,
+    accent: definition.accent,
+  }
+}
 
 function getMotherCardPosition(
   definitionId: (typeof MOTHER_CARD_DEFINITION_IDS)[number],
@@ -82,6 +129,8 @@ function App() {
   const suppressClickRef = useRef(false)
   const productionSequenceRef = useRef(0)
   const instanceSequenceRef = useRef(0)
+  const settledProductionIdsRef = useRef<Set<string>>(new Set())
+  const settledWeatherTimerKeysRef = useRef<Set<string>>(new Set())
   const startOverlayTimeoutRef = useRef<number | null>(null)
   const [cards, setCards] = useState(initialCards)
   const [archivedCards, setArchivedCards] = useState<TableCard[]>([])
@@ -94,14 +143,19 @@ function App() {
   const [hasStarted, setHasStarted] = useState(false)
   const [isStartOverlayVisible, setIsStartOverlayVisible] = useState(true)
   const [isStartingGame, setIsStartingGame] = useState(false)
+  const [seenDefinitionIds, setSeenDefinitionIds] = useState<string[]>(() => [
+    ...new Set(initialCards.map((card) => card.definitionId)),
+  ])
   const hasDecayingCards = cards.some((card) => typeof card.decayAtMs === 'number')
   const hasSpawningCards = cards.some(
     (card) =>
       typeof card.spawnedAtMs === 'number' &&
       nowMs - card.spawnedAtMs < CARD_SPAWN_ANIMATION_MS,
   )
-  const hasRefillingMotherCards = cards.some(
-    (card) => card.isMother && typeof card.refillStartedAtMs === 'number',
+  const hasCountdownCards = cards.some(
+    (card) =>
+      typeof card.refillStartedAtMs === 'number' &&
+      typeof card.refillDurationMs === 'number',
   )
 
   useEffect(() => {
@@ -126,7 +180,7 @@ function App() {
       productions.length === 0 &&
       !hasDecayingCards &&
       !hasSpawningCards &&
-      !hasRefillingMotherCards
+      !hasCountdownCards
     ) {
       return undefined
     }
@@ -138,7 +192,30 @@ function App() {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [hasDecayingCards, hasRefillingMotherCards, hasSpawningCards, productions.length])
+  }, [hasCountdownCards, hasDecayingCards, hasSpawningCards, productions.length])
+
+  useEffect(() => {
+    const presentDefinitionIds = [
+      ...cards.map((card) => card.definitionId),
+      ...archivedCards.map((card) => card.definitionId),
+    ]
+
+    setSeenDefinitionIds((currentIds) => {
+      const nextIds = [...currentIds]
+      let hasChanges = false
+
+      for (const definitionId of presentDefinitionIds) {
+        if (nextIds.includes(definitionId)) {
+          continue
+        }
+
+        nextIds.push(definitionId)
+        hasChanges = true
+      }
+
+      return hasChanges ? nextIds : currentIds
+    })
+  }, [archivedCards, cards])
 
   useEffect(() => {
     const boardBounds = boardRef.current?.getBoundingClientRect()
@@ -238,7 +315,10 @@ function App() {
         const totalCopies = getTotalCopiesOnTable(currentCards, card.definitionId)
 
         if (totalCopies >= RESOURCE_MOTHER_MAX_QUANTITY) {
-          if (typeof card.refillStartedAtMs !== 'number') {
+          if (
+            typeof card.refillStartedAtMs !== 'number' &&
+            typeof card.refillDurationMs !== 'number'
+          ) {
             return card
           }
 
@@ -246,10 +326,14 @@ function App() {
           return {
             ...card,
             refillStartedAtMs: null,
+            refillDurationMs: null,
           }
         }
 
-        if (typeof card.refillStartedAtMs === 'number') {
+        if (
+          typeof card.refillStartedAtMs === 'number' &&
+          typeof card.refillDurationMs === 'number'
+        ) {
           return card
         }
 
@@ -257,6 +341,7 @@ function App() {
         return {
           ...card,
           refillStartedAtMs: Date.now(),
+          refillDurationMs: RESOURCE_MOTHER_REFILL_MS,
         }
       })
 
@@ -265,7 +350,7 @@ function App() {
   }, [cards])
 
   useEffect(() => {
-    if (!hasRefillingMotherCards) {
+    if (!hasCountdownCards) {
       return
     }
 
@@ -281,7 +366,8 @@ function App() {
 
         if (
           typeof card.refillStartedAtMs !== 'number' ||
-          nowMs - card.refillStartedAtMs < RESOURCE_MOTHER_REFILL_MS
+          typeof card.refillDurationMs !== 'number' ||
+          nowMs - card.refillStartedAtMs < card.refillDurationMs
         ) {
           return card
         }
@@ -292,6 +378,7 @@ function App() {
           return {
             ...card,
             refillStartedAtMs: null,
+            refillDurationMs: null,
           }
         }
 
@@ -299,12 +386,155 @@ function App() {
           ...card,
           quantity: Math.min((card.quantity ?? 0) + 1, RESOURCE_MOTHER_MAX_QUANTITY),
           refillStartedAtMs: null,
+          refillDurationMs: null,
         }
       })
 
       return hasChanges ? nextCards : currentCards
     })
-  }, [hasRefillingMotherCards, nowMs])
+  }, [hasCountdownCards, nowMs])
+
+  useEffect(() => {
+    const hasUnlockedUmbrella = storyState.unlockedDefinitionIds.includes(
+      WEATHER_DISCOVERY_TRIGGER_ID,
+    )
+    const hasResolvedEnding = cards.some((card) => card.kind === 'ending')
+
+    setCards((currentCards) => {
+      let hasChanges = false
+
+      const nextCards = currentCards.map((card) => {
+        if (!isWeatherDefinitionId(card.definitionId)) {
+          return card
+        }
+
+        const shouldCountDown = hasStarted && hasUnlockedUmbrella && !hasResolvedEnding
+
+        if (!shouldCountDown) {
+          if (
+            typeof card.refillStartedAtMs !== 'number' &&
+            typeof card.refillDurationMs !== 'number'
+          ) {
+            return card
+          }
+
+          hasChanges = true
+          return {
+            ...card,
+            refillStartedAtMs: null,
+            refillDurationMs: null,
+          }
+        }
+
+        if (
+          typeof card.refillStartedAtMs === 'number' &&
+          typeof card.refillDurationMs === 'number'
+        ) {
+          return card
+        }
+
+        hasChanges = true
+        return {
+          ...card,
+          refillStartedAtMs: Date.now(),
+          refillDurationMs: WEATHER_STAGE_ADVANCE_MS,
+        }
+      })
+
+      return hasChanges ? nextCards : currentCards
+    })
+  }, [cards, hasStarted, storyState.unlockedDefinitionIds])
+
+  useEffect(() => {
+    const activeWeatherCard = cards.find(
+      (card) =>
+        isWeatherDefinitionId(card.definitionId) &&
+        typeof card.refillStartedAtMs === 'number' &&
+        typeof card.refillDurationMs === 'number',
+    )
+    const weatherTimerStartedAtMs = activeWeatherCard?.refillStartedAtMs
+    const weatherTimerDurationMs = activeWeatherCard?.refillDurationMs
+
+    if (
+      !activeWeatherCard ||
+      typeof weatherTimerStartedAtMs !== 'number' ||
+      typeof weatherTimerDurationMs !== 'number' ||
+      nowMs - weatherTimerStartedAtMs < weatherTimerDurationMs
+    ) {
+      return
+    }
+
+    const weatherTimerKey = `${activeWeatherCard.id}:${activeWeatherCard.definitionId}:${weatherTimerStartedAtMs}`
+
+    if (settledWeatherTimerKeysRef.current.has(weatherTimerKey)) {
+      return
+    }
+
+    settledWeatherTimerKeysRef.current.add(weatherTimerKey)
+
+    if (activeWeatherCard.definitionId === 'weather-downpour') {
+      const endingDefinition = cardDefinitionMap.get(FORCED_WEATHER_ENDING_DEFINITION_ID)
+      const boardBounds = boardRef.current?.getBoundingClientRect()
+      const boardWidth = boardBounds?.width ?? 1200
+      const boardHeight = boardBounds?.height ?? 800
+
+      if (!endingDefinition) {
+        return
+      }
+
+      instanceSequenceRef.current += 1
+      const centerX = clamp(boardWidth / 2 - CARD_WIDTH / 2, 0, Math.max(boardWidth - CARD_WIDTH, 0))
+      const centerY = clamp(boardHeight / 2 - CARD_HEIGHT / 2, 0, Math.max(boardHeight - CARD_HEIGHT, 0))
+      const endingCard = createTableCardFromDefinition(
+        endingDefinition,
+        `${endingDefinition.id}-${instanceSequenceRef.current}`,
+        centerX,
+        centerY,
+        {
+          spawnedAtMs: Date.now(),
+          spawnOriginX: centerX,
+          spawnOriginY: Math.max(centerY - 48, 0),
+        },
+      )
+
+      dragRef.current = null
+      suppressClickRef.current = false
+      settledProductionIdsRef.current.clear()
+      setDraggingStackIds(null)
+      setSelectedCardId(null)
+      setArchivedCards([])
+      setProductions([])
+      setCards([endingCard])
+      void logGameEvent('weather', 'Forced imaginary ending after downpour countdown', {
+        weatherDefinitionId: activeWeatherCard.definitionId,
+      })
+      return
+    }
+
+    const nextWeatherDefinitionId = getNextWeatherDefinitionId(activeWeatherCard.definitionId)
+
+    if (!nextWeatherDefinitionId) {
+      return
+    }
+
+    setCards((currentCards) =>
+      currentCards.map((card) => {
+        if (card.id !== activeWeatherCard.id) {
+          return card
+        }
+
+        return {
+          ...syncCardToDefinition(card, nextWeatherDefinitionId),
+          refillStartedAtMs: Date.now(),
+          refillDurationMs: WEATHER_STAGE_ADVANCE_MS,
+        }
+      }),
+    )
+    void logGameEvent('weather', 'Weather stage advanced', {
+      from: activeWeatherCard.definitionId,
+      to: nextWeatherDefinitionId,
+    })
+  }, [cards, nowMs])
 
   useEffect(() => {
     const matches = getProductionMatches(cards)
@@ -367,7 +597,10 @@ function App() {
     }
 
     const finishedRuns = productions.filter(
-      (run) => run.status === 'active' && nowMs - run.startedAtMs >= run.durationMs,
+      (run) =>
+        run.status === 'active' &&
+        nowMs - run.startedAtMs >= run.durationMs &&
+        !settledProductionIdsRef.current.has(run.id),
     )
 
     const shrinkFinishedIds = new Set(
@@ -376,7 +609,8 @@ function App() {
           (run) =>
             run.status === 'shrinking' &&
             typeof run.shrinkStartedAtMs === 'number' &&
-            nowMs - run.shrinkStartedAtMs >= PRODUCTION_RING_SHRINK_MS,
+            nowMs - run.shrinkStartedAtMs >= PRODUCTION_RING_SHRINK_MS &&
+            !settledProductionIdsRef.current.has(run.id),
         )
         .map((run) => run.id),
     )
@@ -389,6 +623,13 @@ function App() {
     }
 
     const finishedIds = new Set(finishedRuns.map((run) => run.id))
+    finishedIds.forEach((runId) => {
+      settledProductionIdsRef.current.add(runId)
+    })
+    shrinkFinishedIds.forEach((runId) => {
+      settledProductionIdsRef.current.add(runId)
+    })
+
     const boardBounds = boardRef.current?.getBoundingClientRect()
     const boardWidth = boardBounds?.width ?? 1200
     const boardHeight = boardBounds?.height ?? 800
@@ -494,6 +735,42 @@ function App() {
       setStoryState(nextStoryState)
     }
   }, [cards, storyState])
+
+  useEffect(() => {
+    setCards((currentCards) => {
+      let hasChanges = false
+
+      const nextCards = currentCards.map((card) => {
+        const definition = cardDefinitionMap.get(card.definitionId)
+
+        if (!definition) {
+          return card
+        }
+
+        if (
+          card.name === definition.name &&
+          card.kind === definition.kind &&
+          card.kindLabel === definition.kindLabel &&
+          card.note === definition.note &&
+          card.accent === definition.accent
+        ) {
+          return card
+        }
+
+        hasChanges = true
+        return {
+          ...card,
+          name: definition.name,
+          kind: definition.kind,
+          kindLabel: definition.kindLabel,
+          note: definition.note,
+          accent: definition.accent,
+        }
+      })
+
+      return hasChanges ? nextCards : currentCards
+    })
+  }, [])
 
   const moveDraggedCard = (pointerId: number, clientX: number, clientY: number) => {
     const dragState = dragRef.current
@@ -733,6 +1010,7 @@ function App() {
             ...card,
             quantity: Math.max((card.quantity ?? 0) - 1, RESOURCE_MOTHER_MIN_QUANTITY),
             refillStartedAtMs: null,
+            refillDurationMs: null,
           }
         })
 
@@ -933,7 +1211,9 @@ function App() {
       {selectedCard && selectedCardDefinition ? (
         <EventCardDetail
           card={selectedCard}
+          cards={cards}
           definition={selectedCardDefinition}
+          seenDefinitionIds={seenDefinitionIds}
           nowMs={nowMs}
           onClose={() => setSelectedCardId(null)}
         />

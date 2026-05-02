@@ -1,399 +1,266 @@
-# AI SDD：React 拖拽卡牌网页小游戏
+# AI SDD：SOSimulator 当前实现说明
 
-## 1. 目标
+## 1. 文档目的
 
-实现一个 React 单页网页小游戏原型。核心玩法是玩家拖动卡牌，将卡牌放入动作框的合适槽位中，启动行动，等待倒计时完成，获得新卡牌、日志、剧情推进或结局。
+这份文档描述的是当前代码已经落地的前端原型结构，不再沿用早期“动作框 / 槽位 / 仪式”的旧设计稿口径。
 
-本项目第一阶段只实现本地单机原型，不接后端。
+当前版本的核心是：
 
-## 2. 技术原则
+- 全屏桌面式拖拽卡牌
+- 卡牌上下吸附形成父子链
+- 通过堆叠顺序自动匹配产出规则
+- `精力 / 时间` 母牌常驻左下角并自动回充
+- `蓝色雨伞` 发现后触发独立天气计时
+- 详情弹窗、主线收纳栏、背景滑动文本共同承担叙事表达
 
-- 使用 React 组件化 UI。
-- 游戏状态集中管理，优先使用 `useReducer` 或等价 reducer/store。
-- 游戏规则数据驱动：卡牌、动作框、槽位、配方、事件都来自配置对象。
-- React 组件只负责展示和派发用户意图，不直接写复杂规则。
-- 避免链式 `useEffect` 推导游戏状态；可由 state 推导的值用 selector 或渲染期计算。
-- 副作用集中处理：存档、计时器 tick、音效、日志追加等要有清晰边界。
+---
 
-## 3. 建议目录结构
+## 2. 当前技术实现
+
+- 前端框架：React + TypeScript
+- 构建：Vite
+- 状态管理：`App.tsx` 中的 `useState` + `useEffect`
+- 规则来源：`src/data/*.json`
+- 核心规则函数：`src/game/*.ts`
+- 日志输出：浏览器控制台 + `/__log` 文件日志接口
+
+当前实现并没有采用 `useReducer` 或全局 store，而是把主要运行状态集中在 `App.tsx` 内，由纯函数模块负责产出匹配、堆叠吸附、剧情解锁等逻辑。
+
+---
+
+## 3. 当前目录分工
 
 ```text
 src/
-  app/
-    App.tsx
-    GameProvider.tsx
+  App.tsx
+  App.css
   components/
+    BackgroundSlideText.tsx
+    CardBoard.tsx
     CardView.tsx
-    CardPile.tsx
-    ActionBox.tsx
-    ActionSlot.tsx
-    LogPanel.tsx
-    StatusBar.tsx
-    EventModal.tsx
+    EventCardDetail.tsx
+    MainlineTray.tsx
+    ProductionEffect.tsx
   data/
-    cards.ts
-    actions.ts
-    recipes.ts
-    events.ts
-    initialState.ts
+    Back_text.json
+    CardKind.json
+    CardOutput.json
+    Event_Card.json
   game/
+    cardData.ts
+    constants.ts
+    log.ts
+    production.ts
+    stacking.ts
+    story.ts
     types.ts
-    reducer.ts
-    selectors.ts
-    rules.ts
-    recipes.ts
-    events.ts
-    persistence.ts
-  tests/
-    game-rules.test.ts
-    reducer.test.ts
 ```
 
-如果项目已有结构，以已有结构为准，但保持“UI / data / game rules”分层。
-
-## 4. 核心类型契约
-
-### CardDefinition
-
-```ts
-type CardType =
-  | 'resource'
-  | 'clue'
-  | 'knowledge'
-  | 'state'
-  | 'tool'
-  | 'ritual'
-  | 'ending';
-
-interface CardDefinition {
-  id: string;
-  name: string;
-  type: CardType;
-  tags: string[];
-  description: string;
-  stackable: boolean;
-  unique?: boolean;
-  visibility?: 'visible' | 'locked' | 'hidden';
-}
-```
-
-规则：
-
-- `id` 使用稳定短横线命名，如 `strange-clue`。
-- `tags` 用于规则匹配，不要用显示名称做逻辑判断。
-- `unique` 卡牌全局最多一个有效实例。
-
-### CardInstance
-
-```ts
-interface CardInstance {
-  instanceId: string;
-  definitionId: string;
-  quantity: number;
-  location:
-    | { type: 'table' }
-    | { type: 'slot'; actionId: string; slotId: string }
-    | { type: 'locked'; actionRunId: string }
-    | { type: 'discard' };
-  status?: 'normal' | 'locked' | 'spent';
-  isMother?: boolean;
-}
-```
-
-规则：
-
-- UI 渲染卡牌实例，不直接渲染定义。
-- 动作运行时输入卡牌应转为 locked 或记录在 action run 中。
-- 被消耗卡牌移入 discard 或从实例表移除，两种方式选一种并保持一致。
-- `精力` 与 `时间` 支持一种特殊实例：资源母牌。母牌固定在桌面左下角，不参与普通拖拽位移。
-- 资源母牌的 `quantity` 允许落到 `0`，上限为 `2`。
-- 只有资源母牌会自动补充数量；普通资源实例不自动增长。
-- 自动补充不再只看母牌自身数量，而是看场上同类资源总量是否低于 `2`；总量达到 `2` 时应立即取消遮罩。
-
-### ActionDefinition
-
-```ts
-interface ActionDefinition {
-  id: string;
-  name: string;
-  description: string;
-  slots: SlotDefinition[];
-  defaultDurationMs: number;
-  recipeIds: string[];
-  unlockFlag?: string;
-}
-```
-
-### SlotDefinition 与 SlotRequirement
-
-```ts
-interface SlotDefinition {
-  id: string;
-  label: string;
-  required: boolean;
-  accepts: SlotRequirement;
-}
-
-interface SlotRequirement {
-  types?: CardType[];
-  tagsAny?: string[];
-  tagsAll?: string[];
-  definitionIds?: string[];
-  minQuantity?: number;
-}
-```
-
-匹配规则：
-
-- `definitionIds` 命中即可通过指定卡牌匹配。
-- `types` 限制卡牌类型。
-- `tagsAny` 表示至少有一个标签。
-- `tagsAll` 表示必须包含所有标签。
-- `minQuantity` 默认 1。
-
-### RecipeDefinition
-
-```ts
-interface RecipeDefinition {
-  id: string;
-  actionId: string;
-  name: string;
-  inputs: RecipeInputRequirement[];
-  durationMs?: number;
-  consume: RecipeConsumeRule[];
-  outputs: RecipeOutput[];
-  setFlags?: Record<string, boolean | string | number>;
-  triggerEventId?: string;
-  log: string;
-}
-
-interface RecipeInputRequirement {
-  slotId: string;
-  types?: CardType[];
-  tagsAny?: string[];
-  tagsAll?: string[];
-  definitionIds?: string[];
-}
-
-interface RecipeConsumeRule {
-  slotId: string;
-  mode: 'consume' | 'return' | 'transform';
-  transformToDefinitionId?: string;
-}
-
-interface RecipeOutput {
-  definitionId: string;
-  quantity: number;
-  location?: 'table';
-}
-```
-
-规则：
-
-- 配方匹配发生在动作开始前。
-- 同一动作可能有多个配方，按 `recipeIds` 顺序匹配第一个合法配方。
-- 没有配方时不能开始动作。
-- MVP 暂不做随机产出。
-
-### EventNode
-
-```ts
-interface EventNode {
-  id: string;
-  title: string;
-  body: string;
-  conditions?: Condition[];
-  choices: EventChoice[];
-  autoOpen?: boolean;
-}
-
-interface EventChoice {
-  id: string;
-  label: string;
-  effects: EventEffect[];
-  nextEventId?: string;
-}
-```
-
-事件效果可包括：
-
-- 设置 flag。
-- 添加卡牌。
-- 解锁动作。
-- 添加日志。
-- 触发结局。
-
-### GameState
-
-```ts
-interface GameState {
-  cardsById: Record<string, CardInstance>;
-  actions: Record<string, ActionState>;
-  unlockedActionIds: string[];
-  flags: Record<string, boolean | string | number>;
-  logs: GameLogEntry[];
-  activeEventId?: string;
-  ending?: EndingState;
-  nowMs: number;
-}
-
-interface ActionState {
-  actionId: string;
-  slotCardIds: Record<string, string | null>;
-  run?: ActionRun;
-}
-
-interface ActionRun {
-  runId: string;
-  recipeId: string;
-  startedAtMs: number;
-  durationMs: number;
-  inputCardIds: string[];
-}
-```
-
-## 5. Reducer 事件
-
-建议 action union：
-
-```ts
-type GameAction =
-  | { type: 'PLACE_CARD_IN_SLOT'; cardId: string; actionId: string; slotId: string }
-  | { type: 'REMOVE_CARD_FROM_SLOT'; actionId: string; slotId: string }
-  | { type: 'START_ACTION'; actionId: string }
-  | { type: 'TICK'; nowMs: number }
-  | { type: 'CLAIM_ACTION'; actionId: string }
-  | { type: 'CHOOSE_EVENT'; eventId: string; choiceId: string }
-  | { type: 'ADD_LOG'; message: string; level?: GameLogLevel }
-  | { type: 'RESET_GAME' };
-```
-
-状态转移要求：
-
-- reducer 必须保持不可变更新。
-- 非法操作应返回原 state，并通过 UI selector 给出错误提示；不要让 reducer 抛异常影响界面。
-- `TICK` 只更新时间和完成状态，不直接产出卡牌。
-- `CLAIM_ACTION` 应结算配方输出、消耗输入、写日志、设置 flag、触发事件或结局。
-
-## 6. 拖拽流程
-
-推荐流程：
-
-1. 用户开始拖动 `CardView`。
-2. `ActionSlot` 根据 `canPlaceCardInSlot(state, cardId, actionId, slotId)` 显示合法/非法悬停反馈。
-3. 用户释放卡牌。
-4. UI 派发 `PLACE_CARD_IN_SLOT`。
-5. reducer 再次校验，合法则更新卡牌 location 和槽位引用。
-6. selector `selectMatchedRecipeForAction` 判断动作是否可开始。
-7. 玩家点击开始，派发 `START_ACTION`。
-8. 倒计时完成后玩家点击领取，派发 `CLAIM_ACTION`。
-
-资源母牌补充流程：
-
-1. `精力` 或 `时间` 母牌在左下角常驻显示。
-2. 玩家左键拖动母牌时，UI 从母牌分离出一张数量为 `1` 的子牌，并让母牌 `quantity - 1`。
-3. 若场上同类资源总量小于 `2`，母牌进入回充动画。
-4. 黑色遮罩自上向下消失，动画结束时母牌 `quantity + 1`。
-5. 若此时场上同类资源总量仍小于 `2`，则开始下一轮回充；若总量已经是 `2`，则不显示遮罩。
-
-点击替代方案预留：
-
-- 点击卡牌进入 selected 状态。
-- 点击合法槽位完成放置。
-
-## 7. 初始内容配置
-
-MVP 至少包含这些卡牌：
-
-| id | 类型 | 标签 | 说明 |
-| --- | --- | --- | --- |
-| `energy` | `resource` | `body`, `effort` | 执行动作的基础资源。 |
-| `money` | `resource` | `money` | 日常工作产物。 |
-| `poor-clue` | `clue` | `explore`, `mundane` | 初始线索。 |
-| `strange-clue` | `clue` | `explore`, `occult` | 探索后出现的线索。 |
-| `hidden-knowledge` | `knowledge` | `occult`, `forbidden` | 研究产物。 |
-| `dream-echo` | `ritual` | `dream`, `ritual` | 休息或梦境产物。 |
-| `will` | `state` | `mental`, `ritual` | 仪式所需状态。 |
-| `morning-star-ending` | `ending` | `victory` | 胜利结局。 |
-
-MVP 至少包含这些动作：
-
-- `work`：将精力转为金钱或意志。
-- `explore`：将贫瘠线索推进为奇怪线索。
-- `research`：将奇怪线索推进为隐秘知识。
-- `rest`：获得梦境残响或恢复精力。
-- `ritual`：使用隐秘知识、梦境残响和意志触发胜利。
-
-## 8. UI 组件职责
-
-- `App`：应用入口，挂载 provider 和主布局。
-- `GameProvider`：持有 reducer、dispatch 和 selectors。
-- `StatusBar`：显示资源、当前目标、结局状态。
-- `CardPile`：渲染桌面上未占用卡牌。
-- `CardView`：显示单张卡牌并提供拖拽源。
-- `CardView` 需要区分普通卡与资源母牌两种交互模式。
-- `ActionBox`：显示动作名称、槽位、进度、开始/领取按钮。
-- `ActionSlot`：显示槽位需求和拖放反馈。
-- `LogPanel`：显示最近日志。
-- `EventModal`：显示剧情事件和选项。
-
-组件边界：
-
-- 组件不直接修改 state。
-- 组件不直接读取数据配置以外的全局变量。
-- 规则判断放入 `game/rules.ts` 和 `game/selectors.ts`。
-
-## 9. Selectors 与规则函数
-
-必须实现或等价实现：
-
-```ts
-getCardDefinition(cardIdOrDefinitionId)
-selectVisibleCards(state)
-selectActionState(state, actionId)
-canPlaceCardInSlot(state, cardId, actionId, slotId)
-selectMatchedRecipeForAction(state, actionId)
-selectActionProgress(state, actionId)
-selectCanStartAction(state, actionId)
-selectCanClaimAction(state, actionId)
-selectUnlockedActions(state)
-selectEnding(state)
-```
-
-规则函数应为纯函数，便于单元测试。
-
-## 10. 存档策略
-
-MVP 可以使用 `localStorage`。
-
-- 存档 key：`sos-card-game-save-v1`。
-- 存档内容：`GameState` 中可序列化部分。
-- 不存函数、组件状态、拖拽临时状态。
-- 加载失败时回退到初始状态并写一条日志。
-
-## 11. 测试要求
-
-单元测试优先覆盖：
-
-- 卡牌能否进入槽位。
-- 配方匹配。
-- 动作开始后卡牌锁定。
-- 动作结算后产出、消耗和日志。
-- 解锁研究、仪式和胜利结局。
-
-UI/端到端测试后续使用 Playwright 覆盖：
-
-- 拖拽合法卡牌到槽位。
-- 非法拖拽被拒绝。
-- 完整胜利路径。
-- 结局弹层出现后不能继续启动动作。
-
-## 12. 验收标准
-
-- 玩家从初始状态不看开发者工具也能完成一条胜利路径。
-- 每次非法操作都有反馈。
-- 每次动作完成都有日志。
-- 游戏规则只依赖配置和纯函数。
-- React 组件没有承载核心规则分支。
-- AI 后续开发不得引入后端依赖作为 MVP 必需项。
+分层职责：
 
+- `data/`：卡牌定义、产出配方、背景文本、详情扩展文案
+- `game/`：规则纯函数、类型、常量、剧情解锁、日志
+- `components/`：桌面渲染、卡牌渲染、特效、详情、收纳栏
+- `App.tsx`：状态汇总、tick、拖拽流程、天气时钟、剧情触发
+
+---
+
+## 4. 核心数据结构
+
+### 4.1 TableCard
+
+当前桌面上的卡牌实例类型见 `src/game/types.ts`。
+
+关键字段：
+
+- `id`：实例 id
+- `definitionId`：卡牌定义 id
+- `x / y`：桌面坐标
+- `quantity`：堆叠数量
+- `parentCardId / childCardId`：父子链关系
+- `spawnedAtMs`：出生动画开始时间
+- `decayAtMs`：自动分解时间
+- `isMother`：是否资源母牌
+- `refillStartedAtMs / refillDurationMs`：倒计时遮罩起点与时长
+
+说明：
+
+- 当前项目没有“卡槽 location”模型，卡牌始终存在于桌面平面上。
+- 多输入配方依赖的是父子链顺序，而不是固定槽位。
+- `refillStartedAtMs / refillDurationMs` 已被复用给资源回充和天气升级两类遮罩倒计时。
+
+### 4.2 CardDefinitionRecord
+
+卡牌定义来源于 `src/data/CardKind.json`，在运行时经过 `src/game/cardData.ts` 归一化。
+
+当前定义字段：
+
+- `id`
+- `name`
+- `kind`
+- `kindLabel`
+- `note`
+- `details`
+- `accent`
+
+### 4.3 CardOutputRule
+
+产出规则来源于 `src/data/CardOutput.json`。
+
+关键字段：
+
+- `inputDefinitionIds`
+- `durationMs`
+- `event`
+- `outputDefinitionIds`
+- `consumeInputIndexes`
+- `outputCardOverrides`
+
+当前匹配规则：
+
+- 2 张牌配方支持正反两种顺序
+- 3 张及以上配方中，第一个输入固定为父牌
+- 从第二个输入开始，后续输入顺序可以互换
+
+---
+
+## 5. 当前运行循环
+
+## 5.1 开场
+
+- 页面先显示开始界面
+- 点击“开始”后，初始 5 张起始牌按顺序显现
+- 初始卡为：`精力 / 时间 / 春日0 / 商店 / 天气（晴）`
+
+## 5.2 桌面拖拽
+
+- 普通卡可直接拖动
+- 牌与牌之间会在标题横线处吸附
+- 吸附后形成父子链
+- 拖动父牌时，整条链一起移动
+
+## 5.3 自动产出
+
+- 每次 `cards` 变化后，系统扫描可匹配的父子链
+- 匹配成功会生成 `ProductionRun`
+- 运行期间桌面显示环形倒计时
+- 完成后按规则消耗输入并生成输出
+- 若输入链中包含“保留项”，则原牌继续留在桌面
+
+## 5.4 资源母牌
+
+- `精力` 与 `时间` 固定在左下角
+- 左键拖动母牌，会分离出一张子牌
+- 母牌数量范围为 `0` 到 `2`
+- 只有母牌会自动恢复数量
+- 判断恢复时看“场上同类总量是否小于 2”
+- 回充遮罩为黑色，自上向下消失
+
+## 5.5 天气时钟
+
+- 首次发现任意阶段的 `蓝色雨伞` 后，天气进入独立计时
+- 每 3 分钟自动推进一级：
+  `晴 -> 阴 -> 阵雨 -> 大雨 -> 暴雨 -> 特大暴雨`
+- 天气卡使用与母牌相同的遮罩倒计时表现
+- `特大暴雨` 倒计时结束后，强制清场，只保留 `虚构失主出现`
+
+## 5.6 剧情解锁
+
+当前 `story.ts` 中已落地的剧情解锁较轻量：
+
+- `证词` 首次出现时，自动刷出 `长门0`
+- 背景滑动文本会根据章节、执念等级、异常等级和卡牌条件变化
+
+当前没有实现：
+
+- 按天数推进
+- 店铺关闭
+- 每日刷新事件卡
+- 选项式剧情树
+
+---
+
+## 6. 当前 UI 组件职责
+
+### `CardBoard`
+
+- 渲染桌面
+- 负责当前拖拽组的渲染前置
+- 挂载背景文本与产出特效
+
+### `CardView`
+
+- 渲染单张卡
+- 显示名称、种类、小字说明、数量
+- 负责出生动画与倒计时遮罩
+- 母牌额外显示“左键拖出 1 张”
+
+### `ProductionEffect`
+
+- 渲染产出环形倒计时
+
+### `EventCardDetail`
+
+- 渲染详情弹窗
+- 读取 `CardKind.json` 与 `Event_Card.json`
+- 展示“卡片简介”
+- 展示“它会把故事牵向哪边”
+- 提示只在玩家已经见过相关卡，或相关卡当前就在桌面时才显示
+
+### `MainlineTray`
+
+- 固定在右上角
+- 用于收纳主线卡
+- 卡可从桌面拖入，也可再拖回桌面
+
+### `BackgroundSlideText`
+
+- 根据 `Back_text.json` 与剧情章节，在桌面背景播放滑动文字
+
+---
+
+## 7. 当前叙事数据来源
+
+- `CardKind.json`：卡牌名称、颜色、简介正文
+- `CardOutput.json`：产出链
+- `Event_Card.json`：详情页额外文案与部分专属提示
+- `Back_text.json`：背景漂浮句子
+- `story.ts`：章节判断、长门解锁、天气开钟触发条件
+
+---
+
+## 8. 当前与旧设计稿的主要差异
+
+当前代码已经明确不再是下列模式：
+
+- 不是固定动作框 + 固定卡槽
+- 不是“开始动作 / 领取结果”的按钮式流程
+- 不是以 reducer 为中心的状态机
+- 不是密教模拟器式探索/研究/仪式卡组
+
+当前更接近：
+
+- 自由桌面堆叠
+- 牌与牌直接相互作用
+- 连续时间流动
+- 轻剧情解锁 + 强桌面可视表达
+
+---
+
+## 9. 当前已知限制
+
+- 许多剧情推进仍依赖单条配方，没有独立事件系统
+- `Event_Card.json` 仍保留少量旧版命名残留，更多详情提示主要靠自动生成模板
+- 日志目前写入控制台和文件接口，但前端没有单独日志面板
+- “第几天 / 店铺关闭 / 人物冷却 / 干扰事件”仍属于后续扩展
+
+---
+
+## 10. 后续建议
+
+若继续沿当前代码推进，建议顺序是：
+
+1. 继续把详情提示改成逐张手写文本，减少自动模板感
+2. 引入轻量“已见卡 / 已完成节点”驱动的提示系统
+3. 再决定是否补“按天推进 / 店铺关闭 / 干扰事件”
+4. 若未来再做大改，再考虑把 `App.tsx` 状态拆成 reducer/store
