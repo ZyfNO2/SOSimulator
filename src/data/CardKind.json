@@ -1,51 +1,90 @@
 [
   {
+    "id": "haruhi",
+    "name": "凉宫春日",
+    "kind": "leader",
+    "kindLabel": "团长",
+    "note": "「我对普通的人类没有兴趣。你们之中要是有外星人、未来人、异世界人、超能力者，就来找我吧！」",
+    "accent": "haruhi"
+  },
+  {
+    "id": "kyon",
+    "name": "阿虚",
+    "kind": "member",
+    "kindLabel": "团员",
+    "note": "负责吐槽的普通人。虽然嘴上抱怨，却总被卷进凉宫的荒唐事。",
+    "accent": "kyon"
+  },
+  {
+    "id": "yuki",
+    "name": "长门有希",
+    "kind": "alien",
+    "kindLabel": "外星人",
+    "note": "情报统合思念体制造的人形终端。沉默寡言，但能解析一切数据。",
+    "accent": "yuki"
+  },
+  {
+    "id": "mikuru",
+    "name": "朝比奈实玖瑠",
+    "kind": "traveler",
+    "kindLabel": "未来人",
+    "note": "从未来来的调查员。胆小可爱，却掌握着关键的时间情报。",
+    "accent": "mikuru"
+  },
+  {
+    "id": "itsuki",
+    "name": "古泉一树",
+    "kind": "esper",
+    "kindLabel": "超能力者",
+    "note": "「机关」派来的超能力者。负责处理闭锁空间，总是面带微笑。",
+    "accent": "itsuki"
+  },
+  {
     "id": "energy",
     "name": "精力",
     "kind": "resource",
     "kindLabel": "资源",
-    "note": "还有余温的清醒时刻。",
+    "note": "团员的行动力。没有精力的话，连社团活动都无法进行。",
     "accent": "resource"
   },
   {
-    "id": "poor-clue",
-    "name": "贫瘠线索",
+    "id": "clue-normal",
+    "name": "日常线索",
     "kind": "clue",
     "kindLabel": "线索",
-    "note": "一切都像是偶然，但又不完全像。",
+    "note": "看似无关紧要的日常小事。但凉宫说过——奇怪的事情往往就藏在日常里。",
     "accent": "clue"
   },
   {
-    "id": "daily-work",
-    "name": "日常工作",
-    "kind": "routine",
-    "kindLabel": "日常",
-    "note": "稳定、乏味、暂时有用。",
-    "accent": "routine"
-  },
-  {
-    "id": "event-card",
-    "name": "事件",
-    "kind": "event",
-    "kindLabel": "事件",
-    "note": "投入不同的子牌，会导向不同的结果。",
-    "details": "这是一个分支事件卡。你可以把资源叠到它上面，不同子牌会触发不同产出或消耗结果。",
-    "accent": "event"
-  },
-  {
-    "id": "money",
-    "name": "金钱",
-    "kind": "resource",
-    "kindLabel": "资源",
-    "note": "可流动的日常回报。",
-    "accent": "money"
-  },
-  {
-    "id": "solid-clue",
-    "name": "缜密的线索",
+    "id": "clue-occult",
+    "name": "超自然线索",
     "kind": "clue",
     "kindLabel": "线索",
-    "note": "碎片拼凑后，轮廓开始清晰。",
-    "accent": "solid-clue"
+    "note": "外星人、未来人、超能力者……它们确实存在。线索就在这里。",
+    "accent": "occult"
+  },
+  {
+    "id": "movie-script",
+    "name": "电影剧本",
+    "kind": "tool",
+    "kindLabel": "道具",
+    "note": "SOS团文化祭用的自制电影剧本。凉宫亲自操刀，内容极其胡闹。",
+    "accent": "tool"
+  },
+  {
+    "id": "closed-space",
+    "name": "闭锁空间",
+    "kind": "threat",
+    "kindLabel": "威胁",
+    "note": "凉宫情绪波动产生的灰色空间。如果不处理，现实世界会被吞噬。",
+    "accent": "threat"
+  },
+  {
+    "id": "truth",
+    "name": "世界的真相",
+    "kind": "ending",
+    "kindLabel": "真相",
+    "note": "你知道得太多了。凉宫就是——不，还是不要说出来比较好。",
+    "accent": "ending"
   }
 ]

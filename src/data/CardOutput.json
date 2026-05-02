@@ -1,34 +1,74 @@
 [
   {
-    "id": "daily-work-energy-money",
-    "parentDefinitionId": "daily-work",
+    "id": "haruhi-energy-clue-normal",
+    "parentDefinitionId": "haruhi",
     "childDefinitionId": "energy",
+    "durationMs": 3000,
+    "event": "日常搜索",
+    "outputDefinitionId": "clue-normal",
+    "consumeChild": true
+  },
+  {
+    "id": "kyon-clue-normal-clue-occult",
+    "parentDefinitionId": "kyon",
+    "childDefinitionId": "clue-normal",
+    "durationMs": 4000,
+    "event": "深入调查",
+    "outputDefinitionId": "clue-occult",
+    "consumeChild": true
+  },
+  {
+    "id": "yuki-clue-occult-truth",
+    "parentDefinitionId": "yuki",
+    "childDefinitionId": "clue-occult",
     "durationMs": 5000,
-    "outputDefinitionId": "money",
+    "event": "情报解析",
+    "outputDefinitionId": "truth",
     "consumeChild": true
   },
   {
-    "id": "event-energy-money",
-    "parentDefinitionId": "event-card",
+    "id": "mikuru-energy-clue-occult",
+    "parentDefinitionId": "mikuru",
     "childDefinitionId": "energy",
     "durationMs": 4000,
-    "outputDefinitionId": "money",
+    "event": "未来预警",
+    "outputDefinitionId": "clue-occult",
     "consumeChild": true
   },
   {
-    "id": "event-money-empty",
-    "parentDefinitionId": "event-card",
-    "childDefinitionId": "money",
-    "durationMs": 4000,
+    "id": "itsuki-closed-space-energy",
+    "parentDefinitionId": "itsuki",
+    "childDefinitionId": "closed-space",
+    "durationMs": 3000,
+    "event": "闭锁空间处理",
+    "outputDefinitionId": "energy",
+    "consumeChild": true
+  },
+  {
+    "id": "haruhi-movie-script-clues",
+    "parentDefinitionId": "haruhi",
+    "childDefinitionId": "movie-script",
+    "durationMs": 6000,
+    "event": "电影拍摄",
+    "outputDefinitionId": "clue-normal",
+    "consumeChild": false
+  },
+  {
+    "id": "haruhi-kyon-calm",
+    "parentDefinitionId": "haruhi",
+    "childDefinitionId": "kyon",
+    "durationMs": 2000,
+    "event": "安抚凉宫",
     "outputDefinitionId": null,
-    "consumeChild": true
+    "consumeChild": false
   },
   {
-    "id": "poor-clue-energy-solid-clue",
-    "parentDefinitionId": "poor-clue",
-    "childDefinitionId": "energy",
-    "durationMs": 4000,
-    "outputDefinitionId": "solid-clue",
+    "id": "kyon-truth-ending",
+    "parentDefinitionId": "kyon",
+    "childDefinitionId": "truth",
+    "durationMs": 3000,
+    "event": "真相揭露",
+    "outputDefinitionId": null,
     "consumeChild": true
   }
 ]

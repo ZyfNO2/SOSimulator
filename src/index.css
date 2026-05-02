@@ -1,11 +1,12 @@
 :root {
-  --bg: #c6af97;
-  --bg-deep: #8e735c;
+  --bg: #d4b896;
+  --bg-deep: #a08464;
   --border: #cfbea8;
   --text: #4f3a29;
   --text-soft: #6d5543;
   --text-strong: #24180f;
-  --accent: #8e3e13;
+  --accent: #b45309;
+  --haruhi-gold: #f9a825;
   --heading: 'Iowan Old Style', 'Palatino Linotype', 'Noto Serif SC', serif;
   --body: 'Avenir Next', 'Segoe UI', 'PingFang SC', sans-serif;
   --mono: 'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
@@ -25,7 +26,9 @@
 html {
   min-height: 100%;
   background:
-    radial-gradient(circle at top, rgba(255, 241, 222, 0.46), transparent 34%),
+    radial-gradient(ellipse at 30% 20%, rgba(255, 241, 200, 0.35), transparent 40%),
+    radial-gradient(ellipse at 70% 60%, rgba(255, 220, 160, 0.2), transparent 35%),
+    radial-gradient(circle at top, rgba(255, 248, 230, 0.4), transparent 34%),
     linear-gradient(180deg, var(--bg), var(--bg-deep));
 }
 
@@ -42,15 +45,6 @@ h1,
 p,
 ul {
   margin: 0;
-}
-
-h1 {
-  font-family: var(--heading);
-  font-size: clamp(2.8rem, 6vw, 5rem);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  color: var(--text-strong);
-  margin: 14px 0 18px;
 }
 
 ul {

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "npm run dev",
+      "npm run build",
+      "npm run lint",
+      "npm run preview",
+      "npm install",
+      "npm ci",
+      "npx vitest",
+      "npx playwright"
+    ]
+  }
+}
