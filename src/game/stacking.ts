@@ -28,18 +28,22 @@ export function detachCardFromParent(cards: TableCard[], cardId: string) {
     return cards
   }
 
+  const parentCardId = movingCard.parentCardId
+
   return cards.map((card) => {
     if (card.id === cardId) {
       return {
         ...card,
         parentCardId: null,
+        // 保留 childCardId，保持与后代的链式关系
       }
     }
 
-    if (card.id === movingCard.parentCardId) {
+    if (card.id === parentCardId) {
       return {
         ...card,
-        childCardId: null,
+        // 如果原父卡指向被拖拽卡，则清空；否则保留原指向（应对中间卡拖拽）
+        childCardId: card.childCardId === cardId ? null : card.childCardId,
       }
     }
 
@@ -69,7 +73,9 @@ export function getSnappedCardPosition(
       continue
     }
 
-    if (targetCard.childCardId && targetCard.childCardId !== movingCardId) {
+    // Allow SOS room to accept multiple children via chain
+    // For non-SOS cards, skip if target already has a different child
+    if (targetCard.childCardId && targetCard.childCardId !== movingCardId && !targetCard.isSOSRoom) {
       continue
     }
 
@@ -144,6 +150,19 @@ export function updateStackRelationship(
     ? cards.find((card) => card.id === nextParentCardId)
     : null
 
+  // For SOS room, attach to the end of the child chain instead of replacing
+  let actualParentId = nextParentCardId
+  if (nextParentCard?.isSOSRoom && nextParentCard.childCardId) {
+    // Find the last member in the chain
+    let lastMemberId = nextParentCard.childCardId
+    let lastMember = cards.find((c) => c.id === lastMemberId)
+    while (lastMember?.childCardId) {
+      lastMemberId = lastMember.childCardId
+      lastMember = cards.find((c) => c.id === lastMemberId)
+    }
+    actualParentId = lastMemberId
+  }
+
   return cards.map((card) => {
     if (card.id === previousParentCardId) {
       return {
@@ -155,18 +174,19 @@ export function updateStackRelationship(
     if (card.id === movingCardId) {
       return {
         ...card,
-        parentCardId: nextParentCardId,
+        parentCardId: actualParentId,
       }
     }
 
-    if (card.id === nextParentCardId) {
+    if (card.id === actualParentId) {
       return {
         ...card,
         childCardId: movingCardId,
       }
     }
 
-    if (card.id === nextParentCard?.childCardId) {
+    // Only detach next parent's old child if not SOS room chain
+    if (card.id === nextParentCard?.childCardId && actualParentId === nextParentCardId) {
       return {
         ...card,
         parentCardId: null,

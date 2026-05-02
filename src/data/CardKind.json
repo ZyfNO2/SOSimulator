@@ -45,7 +45,8 @@
     "kind": "resource",
     "kindLabel": "资源",
     "note": "团员的行动力。没有精力的话，连社团活动都无法进行。",
-    "accent": "resource"
+    "accent": "resource",
+    "isStackable": true
   },
   {
     "id": "clue-normal",
@@ -86,5 +87,238 @@
     "kindLabel": "真相",
     "note": "你知道得太多了。凉宫就是——不，还是不要说出来比较好。",
     "accent": "ending"
+  },
+  {
+    "id": "sos-declaration",
+    "name": "SOS团成立宣言",
+    "kind": "knowledge",
+    "kindLabel": "知识",
+    "note": "我对普通的人类没有兴趣。你们当中要是有外星人，未来人，异世界人，超能力者的话，就尽管来找我吧。",
+    "accent": "sos"
+  },
+  {
+    "id": "sos-thought",
+    "name": "SOS（思绪）",
+    "kind": "state",
+    "kindLabel": "状态",
+    "note": "凉宫春日脑海中盘旋的奇妙念头——寻找异常、打破日常、让世界变得更热闹。",
+    "accent": "thought"
+  },
+  {
+    "id": "location-spawner",
+    "name": "校园探索",
+    "kind": "mechanic",
+    "kindLabel": "机制",
+    "note": "SOS团的日常活动——在校园各处寻找有趣的事情。需要人物参与才能发现地点。",
+    "accent": "spawner"
+  },
+  {
+    "id": "location-literature",
+    "name": "文艺社活动室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "SOS团的活动据点。原本属于文艺社，现在被凉宫强行占用了。",
+    "accent": "location"
+  },
+  {
+    "id": "location-classroom-2",
+    "name": "二年级教室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "凉宫春日和阿虚所在的班级教室。日常与异常的交汇点。",
+    "accent": "location"
+  },
+  {
+    "id": "location-playground",
+    "name": "操场",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "北高宽阔的操场。凉宫曾在这里画下巨大的神秘图案。",
+    "accent": "location"
+  },
+  {
+    "id": "location-classroom-1",
+    "name": "一年级教室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "朝比奈实玖瑠所在的班级。据说有时会发生奇怪的事情。",
+    "accent": "location"
+  },
+  {
+    "id": "location-cafeteria",
+    "name": "食堂",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "北高学生用餐的地方。古泉一树经常在这里观察周围。",
+    "accent": "location"
+  },
+  {
+    "id": "location-library",
+    "name": "图书馆",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "长门有希常驻的地方。安静、充满知识，偶尔有异常数据波动。",
+    "accent": "location"
+  },
+  {
+    "id": "location-gate",
+    "name": "校门",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "北高的正门。每天上学放学的必经之路，看似平凡却暗藏玄机。",
+    "accent": "location"
+  },
+  {
+    "id": "location-rooftop",
+    "name": "屋顶",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "禁止进入的屋顶。凉宫却把它当作SOS团的秘密基地。",
+    "accent": "location"
+  },
+  {
+    "id": "location-music-room",
+    "name": "音乐教室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "朝比奈实玖瑠练习合唱的地方。有时能听到奇怪的和声。",
+    "accent": "location"
+  },
+  {
+    "id": "location-infirmary",
+    "name": "保健室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "校医休息的地方。据说有学生在这里看到了不可思议的景象。",
+    "accent": "location"
+  },
+  {
+    "id": "location-computer-room",
+    "name": "计算机教室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "长门有希经常光顾的地方。这里的电脑偶尔会自行运转。",
+    "accent": "location"
+  },
+  {
+    "id": "location-gym",
+    "name": "体育馆",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "SOS团拍摄电影的主要场地。凉宫在这里导演了各种荒唐场面。",
+    "accent": "location"
+  },
+  {
+    "id": "location-pool",
+    "name": "游泳池",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "北高的室内游泳池。实玖瑠在这里拍摄过令人难忘的写真。",
+    "accent": "location"
+  },
+  {
+    "id": "location-shoe-locker",
+    "name": "鞋箱",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "玄关处的鞋箱。据说有人收到过没有署名的神秘信件。",
+    "accent": "location"
+  },
+  {
+    "id": "npc-taniguchi",
+    "name": "谷口",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "阿虚的同学，八卦达人。对超自然现象持怀疑态度，却总被卷入其中。",
+    "accent": "npc"
+  },
+  {
+    "id": "npc-kunikida",
+    "name": "国木田",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "阿虚初中时代的朋友，成绩优秀。经常和谷口一起出现，吐槽谷口的荒唐言论。",
+    "accent": "npc"
+  },
+  {
+    "id": "npc-tsuruya",
+    "name": "鹤屋学姐",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "实玖瑠的同学，富家千金。性格开朗大方，是SOS团的赞助人之一。",
+    "accent": "npc"
+  },
+  {
+    "id": "npc-ryouko",
+    "name": "朝仓凉子",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "长门有希班上的班长。表面上是普通学生，实际上……",
+    "accent": "npc"
+  },
+  {
+    "id": "npc-shamisen",
+    "name": "三味线",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "SOS团捡到的流浪猫。会说话的猫——不，这一定是错觉。",
+    "accent": "npc"
+  },
+  {
+    "id": "computer-club",
+    "name": "电脑研究部",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "被凉宫盯上的可怜社团。他们的新型电脑即将成为SOS团的财产。",
+    "accent": "location"
+  },
+  {
+    "id": "computer-club-president",
+    "name": "电脑研究部部长",
+    "kind": "npc",
+    "kindLabel": "路人",
+    "note": "被凉宫抢走电脑和社团教室的可怜人。对SOS团怀恨在心。",
+    "accent": "npc"
+  },
+  {
+    "id": "blackmail",
+    "name": "把柄",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "凉宫从电脑研究部那里弄到的不光彩证据。足以让部长乖乖交出电脑。",
+    "accent": "clue"
+  },
+  {
+    "id": "yen",
+    "name": "日元",
+    "kind": "resource",
+    "kindLabel": "资源",
+    "note": "辛苦打工赚来的钱。四个日元可以买到一台电脑。",
+    "accent": "resource",
+    "isStackable": true
+  },
+  {
+    "id": "computer",
+    "name": "电脑",
+    "kind": "tool",
+    "kindLabel": "道具",
+    "note": "SOS团终于有了自己的电脑！凉宫似乎又有了什么新点子……",
+    "accent": "tool"
+  },
+  {
+    "id": "electronics-store",
+    "name": "电子城",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "售卖各种电子产品的大型商店。攒够钱就能买到新电脑。",
+    "accent": "location"
+  },
+  {
+    "id": "convenience-store",
+    "name": "便利店",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "SOS团成员可以在这里打工赚钱。时薪微薄，但积少成多。",
+    "accent": "location"
   }
 ]

@@ -1,5 +1,131 @@
 [
   {
+    "id": "level1-haruhi-kyon-sos",
+    "parentDefinitionId": "haruhi",
+    "childDefinitionId": "kyon",
+    "durationMs": 3000,
+    "event": "SOS团成立",
+    "outputDefinitionId": "sos-declaration",
+    "consumeChild": false
+  },
+  {
+    "id": "sos-declaration-haruhi-thought",
+    "parentDefinitionId": "sos-declaration",
+    "childDefinitionId": "haruhi",
+    "durationMs": 3000,
+    "event": "团长觉醒",
+    "outputDefinitionId": "sos-thought",
+    "consumeChild": false
+  },
+  {
+    "id": "spawner-haruhi-location",
+    "parentDefinitionId": "location-spawner",
+    "childDefinitionId": "haruhi",
+    "durationMs": 3000,
+    "event": "团长探索校园",
+    "outputPool": [
+      "location-literature",
+      "location-classroom-2",
+      "location-playground",
+      "location-classroom-1",
+      "location-cafeteria",
+      "location-library",
+      "location-gate",
+      "location-rooftop",
+      "location-music-room",
+      "location-infirmary",
+      "location-computer-room",
+      "location-gym",
+      "location-pool",
+      "location-shoe-locker"
+    ],
+    "consumeChild": false
+  },
+  {
+    "id": "spawner-kyon-location",
+    "parentDefinitionId": "location-spawner",
+    "childDefinitionId": "kyon",
+    "durationMs": 3000,
+    "event": "团员探索校园",
+    "outputPool": [
+      "location-literature",
+      "location-classroom-2",
+      "location-playground",
+      "location-classroom-1",
+      "location-cafeteria",
+      "location-library",
+      "location-gate",
+      "location-rooftop",
+      "location-music-room",
+      "location-infirmary",
+      "location-computer-room",
+      "location-gym",
+      "location-pool",
+      "location-shoe-locker"
+    ],
+    "consumeChild": false
+  },
+  {
+    "id": "location-literature-character-yuki",
+    "parentDefinitionId": "location-literature",
+    "childDefinitionId": "haruhi",
+    "durationMs": 4000,
+    "event": "文艺社的发现",
+    "outputDefinitionId": "yuki",
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
+    "id": "location-literature-character-yuki-kyon",
+    "parentDefinitionId": "location-literature",
+    "childDefinitionId": "kyon",
+    "durationMs": 4000,
+    "event": "文艺社的发现",
+    "outputDefinitionId": "yuki",
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
+    "id": "location-classroom-2-character-mikuru",
+    "parentDefinitionId": "location-classroom-2",
+    "childDefinitionId": "haruhi",
+    "durationMs": 4000,
+    "event": "教室里的偶遇",
+    "outputDefinitionId": "mikuru",
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
+    "id": "location-classroom-2-character-mikuru-kyon",
+    "parentDefinitionId": "location-classroom-2",
+    "childDefinitionId": "kyon",
+    "durationMs": 4000,
+    "event": "教室里的偶遇",
+    "outputDefinitionId": "mikuru",
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
+    "id": "location-other-character-npc-haruhi",
+    "parentKind": "location",
+    "childDefinitionId": "haruhi",
+    "durationMs": 4000,
+    "event": "校园偶遇",
+    "outputPool": ["npc-taniguchi", "npc-kunikida", "npc-tsuruya", "npc-ryouko", "npc-shamisen", "npc-computer-club"],
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
+    "id": "location-other-character-npc-kyon",
+    "parentKind": "location",
+    "childDefinitionId": "kyon",
+    "durationMs": 4000,
+    "event": "校园偶遇",
+    "outputPool": ["npc-taniguchi", "npc-kunikida", "npc-tsuruya", "npc-ryouko", "npc-shamisen", "npc-computer-club"],
+    "consumeChild": false,
+    "consumeParent": true
+  },
+  {
     "id": "haruhi-energy-clue-normal",
     "parentDefinitionId": "haruhi",
     "childDefinitionId": "energy",
@@ -69,6 +195,69 @@
     "durationMs": 3000,
     "event": "真相揭露",
     "outputDefinitionId": null,
+    "consumeChild": true
+  },
+  {
+    "id": "level2-computer-club-haruhi-blackmail",
+    "parentDefinitionId": "computer-club",
+    "childDefinitionId": "haruhi",
+    "durationMs": 4000,
+    "event": "胁迫取证",
+    "outputDefinitionId": "blackmail",
+    "consumeChild": false
+  },
+  {
+    "id": "level2-blackmail-president-computer",
+    "parentDefinitionId": "blackmail",
+    "childDefinitionId": "computer-club-president",
+    "durationMs": 3000,
+    "event": "交易达成",
+    "outputDefinitionId": "computer",
+    "consumeChild": true
+  },
+  {
+    "id": "level2-convenience-store-haruhi-yen",
+    "parentDefinitionId": "convenience-store",
+    "childDefinitionId": "haruhi",
+    "durationMs": 5000,
+    "event": "便利店打工",
+    "outputDefinitionId": "yen",
+    "consumeChild": false
+  },
+  {
+    "id": "level2-convenience-store-kyon-yen",
+    "parentDefinitionId": "convenience-store",
+    "childDefinitionId": "kyon",
+    "durationMs": 5000,
+    "event": "便利店打工",
+    "outputDefinitionId": "yen",
+    "consumeChild": false
+  },
+  {
+    "id": "level2-convenience-store-yuki-yen",
+    "parentDefinitionId": "convenience-store",
+    "childDefinitionId": "yuki",
+    "durationMs": 5000,
+    "event": "便利店打工",
+    "outputDefinitionId": "yen",
+    "consumeChild": false
+  },
+  {
+    "id": "level2-convenience-store-mikuru-yen",
+    "parentDefinitionId": "convenience-store",
+    "childDefinitionId": "mikuru",
+    "durationMs": 5000,
+    "event": "便利店打工",
+    "outputDefinitionId": "yen",
+    "consumeChild": false
+  },
+  {
+    "id": "level2-electronics-store-yen-computer",
+    "parentDefinitionId": "electronics-store",
+    "childDefinitionId": "yen",
+    "durationMs": 3000,
+    "event": "购买电脑",
+    "outputDefinitionId": "computer",
     "consumeChild": true
   }
 ]

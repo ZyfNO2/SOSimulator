@@ -38,7 +38,9 @@ export function EventCardDetail({
           <h3>可触发结果</h3>
           <ul>
             {relatedRules.map((rule) => {
-              const childDefinition = cardDefinitionMap.get(rule.childDefinitionId)
+              const childDefinition = rule.childDefinitionId
+                ? cardDefinitionMap.get(rule.childDefinitionId)
+                : null
               const outputDefinition = rule.outputDefinitionId
                 ? cardDefinitionMap.get(rule.outputDefinitionId)
                 : null

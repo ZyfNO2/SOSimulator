@@ -11,6 +11,11 @@ export const PRODUCTION_RING_SHRINK_MS = 220
 export const CARD_SPAWN_ANIMATION_MS = 520
 export const CARD_SPAWN_DISTANCE_MIN = 90
 export const CARD_SPAWN_DISTANCE_MAX = 128
-export const ENERGY_REGEN_INTERVAL_MS = 3000
-export const CLOSED_SPACE_SPAWN_INTERVAL_MIN_MS = 8000
-export const CLOSED_SPACE_SPAWN_INTERVAL_MAX_MS = 12000
+export const ENERGY_REGEN_INTERVAL_MS = 5000
+export const CLOSED_SPACE_SPAWN_INTERVAL_MS = 20000
+/** 凉宫春日忧郁度满值（毫秒） */
+export const HARUHI_BOREDOM_MAX_MS = 10000
+/** 凉宫春日忧郁度增长间隔 */
+export const HARUHI_BOREDOM_TICK_MS = 100
+/** 地点卡自销毁时间（毫秒） */
+export const LOCATION_SELF_DESTRUCT_MS = 10000

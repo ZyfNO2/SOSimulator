@@ -1,0 +1,200 @@
+.level-hint {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(74, 52, 33, 0.14);
+  box-shadow: 0 4px 16px rgba(54, 38, 18, 0.08);
+}
+
+.level-hint p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+.back-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 250;
+  padding: 6px 16px;
+  border: 1px solid rgba(74, 52, 33, 0.18);
+  border-radius: 8px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--text-strong);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: box-shadow 140ms ease;
+}
+
+.back-btn:hover {
+  box-shadow: 0 4px 12px rgba(54, 38, 18, 0.12);
+}
+
+.card.is-immovable {
+  filter: grayscale(0.65) brightness(0.88);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.card.is-immovable:hover {
+  box-shadow:
+    0 18px 32px rgba(47, 32, 19, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.card.is-shaking {
+  animation: card-shake 400ms ease-in-out;
+}
+
+@keyframes card-shake {
+  0%, 100% { transform: translate(var(--card-x), var(--card-y)) rotate(0deg); }
+  15% { transform: translate(var(--card-x), var(--card-y)) rotate(-4deg); }
+  30% { transform: translate(var(--card-x), var(--card-y)) rotate(4deg); }
+  45% { transform: translate(var(--card-x), var(--card-y)) rotate(-3deg); }
+  60% { transform: translate(var(--card-x), var(--card-y)) rotate(3deg); }
+  75% { transform: translate(var(--card-x), var(--card-y)) rotate(-1deg); }
+  90% { transform: translate(var(--card-x), var(--card-y)) rotate(1deg); }
+}
+
+/* SOS declaration card accent */
+.card-sos {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 230, 0.98), rgba(255, 220, 120, 0.95)),
+    #ffd54f;
+  border-color: rgba(180, 140, 20, 0.4);
+  box-shadow:
+    0 18px 32px rgba(120, 80, 10, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 24px rgba(200, 150, 20, 0.2);
+}
+
+.card-sos .card-kind-band {
+  background: rgba(160, 120, 15, 0.22);
+}
+
+/* SOS thought card accent */
+.card-thought {
+  background:
+    linear-gradient(180deg, rgba(250, 245, 255, 0.98), rgba(220, 190, 250, 0.95)),
+    #ce93d8;
+  border-color: rgba(120, 60, 140, 0.35);
+  box-shadow:
+    0 18px 32px rgba(100, 50, 120, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(180, 130, 220, 0.18);
+}
+
+.card-thought .card-kind-band {
+  background: rgba(120, 50, 150, 0.2);
+}
+
+/* Location spawner card accent */
+.card-spawner {
+  background:
+    linear-gradient(180deg, rgba(240, 248, 255, 0.98), rgba(180, 210, 240, 0.95)),
+    #90caf9;
+  border-color: rgba(40, 80, 140, 0.35);
+  box-shadow:
+    0 18px 32px rgba(30, 60, 100, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(100, 160, 220, 0.18);
+}
+
+.card-spawner .card-kind-band {
+  background: rgba(30, 80, 140, 0.2);
+}
+
+/* Location cards accent */
+.card-location {
+  background:
+    linear-gradient(180deg, rgba(245, 250, 245, 0.98), rgba(200, 220, 200, 0.95)),
+    #a5d6a7;
+  border-color: rgba(50, 100, 60, 0.3);
+  box-shadow:
+    0 18px 32px rgba(30, 60, 30, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.card-location .card-kind-band {
+  background: rgba(50, 100, 50, 0.18);
+}
+
+/* Test character card accent */
+.card-test {
+  background:
+    linear-gradient(180deg, rgba(255, 245, 240, 0.98), rgba(255, 200, 180, 0.95)),
+    #ffab91;
+  border-color: rgba(160, 80, 50, 0.35);
+  box-shadow:
+    0 18px 32px rgba(120, 60, 30, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(220, 140, 100, 0.18);
+}
+
+.card-test .card-kind-band {
+  background: rgba(140, 60, 30, 0.2);
+}
+
+/* Haruhi boredom meter */
+.haruhi-boredom-bar {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(74, 52, 33, 0.14);
+  box-shadow: 0 4px 16px rgba(54, 38, 18, 0.08);
+}
+
+.boredom-label {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+.boredom-track {
+  width: 120px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(74, 52, 33, 0.1);
+  overflow: hidden;
+}
+
+.boredom-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ffb74d, #f44336);
+  transition: width 100ms linear;
+}
+
+/* SOS Room card accent (red) */
+.card-sos-room {
+  background:
+    linear-gradient(180deg, rgba(255, 240, 240, 0.98), rgba(255, 150, 150, 0.95)),
+    #ef5350;
+  border-color: rgba(180, 40, 40, 0.4);
+  box-shadow:
+    0 18px 32px rgba(150, 30, 30, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 24px rgba(220, 80, 80, 0.2);
+}
+
+.card-sos-room .card-kind-band {
+  background: rgba(160, 30, 30, 0.22);
+}
