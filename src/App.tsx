@@ -15,6 +15,7 @@ import {
   consumeChildCard,
   getProductionMatches,
   spawnOutputCard,
+  tryQueueNextSibling,
 } from './game/production'
 import {
   bringCardToFront,
@@ -98,6 +99,7 @@ function App() {
             event: match.rule.event,
             durationMs: match.rule.durationMs,
             consumeChild: match.rule.consumeChild,
+            consumeParent: match.rule.consumeParent,
             startedAtMs: Date.now(),
             status: 'active',
           })
@@ -134,7 +136,8 @@ function App() {
     const energyRegenElapsed = nowMs - energyRegenStartMs
     const energyCycles = Math.floor(energyRegenElapsed / ENERGY_REGEN_INTERVAL_MS)
     const nextEnergyRegenStartMs = energyRegenStartMs + energyCycles * ENERGY_REGEN_INTERVAL_MS
-    const shouldSpawnEnergy = energyCycles > 0
+    const energyCardCount = cards.filter((card) => card.definitionId === 'energy').length
+    const shouldSpawnEnergy = energyCycles > 0 && energyCardCount < 3
 
     if (
       finishedRuns.length === 0 &&
@@ -192,6 +195,7 @@ function App() {
             event: match.rule.event,
             durationMs: match.rule.durationMs,
             consumeChild: match.rule.consumeChild,
+            consumeParent: match.rule.consumeParent,
             startedAtMs: nowMs,
             status: 'active',
           })
@@ -215,6 +219,12 @@ function App() {
             boardHeight,
             instanceSequenceRef,
           )
+
+          const siblingResult = tryQueueNextSibling(nextCards, run)
+
+          if (siblingResult.queuedMatch) {
+            nextCards = siblingResult.nextCards
+          }
         }
 
         if (shouldSpawnEnergy) {

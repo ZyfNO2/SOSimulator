@@ -25,7 +25,7 @@
   },
   {
     "id": "event-card",
-    "name": "事件",
+    "name": "打工Fight",
     "kind": "event",
     "kindLabel": "事件",
     "note": "投入不同的子牌，会导向不同的结果。",

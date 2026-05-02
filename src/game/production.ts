@@ -6,8 +6,22 @@ import {
   CARD_SPAWN_DISTANCE_MIN,
   CARD_WIDTH,
 } from './constants'
-import { clamp } from './stacking'
+import { clamp, updateStackRelationship } from './stacking'
 import type { ProductionMatch, ProductionRun, TableCard } from './types'
+
+function getLastDescendant(cards: TableCard[], rootCardId: string): TableCard | null {
+  let currentId: string | null = rootCardId
+  let lastCard: TableCard | null = null
+
+  while (currentId) {
+    const card = cards.find((c) => c.id === currentId)
+    if (!card) break
+    lastCard = card
+    currentId = card.childCardId
+  }
+
+  return lastCard
+}
 
 export function getProductionMatches(cards: TableCard[]) {
   const matches: ProductionMatch[] = []
@@ -17,7 +31,7 @@ export function getProductionMatches(cards: TableCard[]) {
       continue
     }
 
-    const childCard = cards.find((card) => card.id === parentCard.childCardId)
+    const childCard = getLastDescendant(cards, parentCard.childCardId)
 
     if (!childCard) {
       continue
@@ -44,6 +58,39 @@ export function getProductionMatches(cards: TableCard[]) {
   return matches
 }
 
+export function tryQueueNextSibling(
+  cards: TableCard[],
+  finishedRun: ProductionRun,
+): { nextCards: TableCard[]; queuedMatch: ProductionMatch | null } {
+  const rule = cardOutputRules.find((r) => r.id === finishedRun.ruleId)
+
+  if (!rule || rule.consumeParent) {
+    return { nextCards: cards, queuedMatch: null }
+  }
+
+  const parentCard = cards.find((c) => c.id === finishedRun.parentCardId)
+
+  if (!parentCard || !parentCard.childCardId) {
+    return { nextCards: cards, queuedMatch: null }
+  }
+
+  const lastDescendant = getLastDescendant(cards, parentCard.childCardId)
+
+  if (!lastDescendant || lastDescendant.id === finishedRun.childCardId) {
+    return { nextCards: cards, queuedMatch: null }
+  }
+
+  return {
+    nextCards: cards,
+    queuedMatch: {
+      pairKey: `${rule.id}:${parentCard.id}:${lastDescendant.id}`,
+      parentCard,
+      childCard: lastDescendant,
+      rule,
+    },
+  }
+}
+
 export function getProductionAnchor(cards: TableCard[], run: ProductionRun) {
   const parentCard = cards.find((card) => card.id === run.parentCardId)
 
@@ -58,6 +105,12 @@ export function getProductionAnchor(cards: TableCard[], run: ProductionRun) {
     centerX: parentCard.x + CARD_WIDTH / 2,
     centerY: parentCard.y + CARD_HEIGHT / 2,
   }
+}
+
+function findOrphanParentForDefinition(cards: TableCard[], definitionId: string) {
+  return cards.find(
+    (card) => card.definitionId === definitionId && !card.childCardId,
+  )
 }
 
 export function spawnOutputCard(
@@ -80,6 +133,26 @@ export function spawnOutputCard(
   }
 
   instanceSequenceRef.current += 1
+
+  const orphanParent = findOrphanParentForDefinition(cards, run.outputDefinitionId)
+
+  if (orphanParent) {
+    const spawnedCard = createTableCardFromDefinition(
+      definition,
+      `${definition.id}-${instanceSequenceRef.current}`,
+      orphanParent.x,
+      orphanParent.y + 31,
+      {
+        spawnedAtMs: Date.now(),
+        spawnOriginX: centerX - CARD_WIDTH / 2,
+        spawnOriginY: centerY - CARD_HEIGHT / 2,
+      },
+    )
+
+    let nextCards = [...cards, spawnedCard]
+    nextCards = updateStackRelationship(nextCards, spawnedCard.id, orphanParent.id)
+    return nextCards
+  }
 
   const angleSeed = instanceSequenceRef.current * 1.61803398875
   const angle = (angleSeed % 1) * Math.PI * 2
@@ -115,16 +188,26 @@ export function spawnOutputCard(
 }
 
 export function consumeChildCard(cards: TableCard[], run: ProductionRun) {
-  if (!run.consumeChild) {
+  const idsToRemove = new Set<string>()
+
+  if (run.consumeChild) {
+    idsToRemove.add(run.childCardId)
+  }
+
+  if (run.consumeParent) {
+    for (const id of getCardWithDescendants(cards, run.parentCardId)) {
+      idsToRemove.add(id)
+    }
+  }
+
+  if (idsToRemove.size === 0) {
     return cards
   }
 
-  const childIdsToRemove = getCardWithDescendants(cards, run.childCardId)
-
   return cards
-    .filter((card) => !childIdsToRemove.has(card.id))
+    .filter((card) => !idsToRemove.has(card.id))
     .map((card) => {
-      if (card.id === run.parentCardId) {
+      if (card.childCardId && idsToRemove.has(card.childCardId)) {
         return {
           ...card,
           childCardId: null,

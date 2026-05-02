@@ -48,6 +48,7 @@ export type CardOutputRule = {
   event: string
   outputDefinitionId?: string | null
   consumeChild: boolean
+  consumeParent?: boolean
 }
 
 export type ProductionRun = {
@@ -60,6 +61,7 @@ export type ProductionRun = {
   event: string
   durationMs: number
   consumeChild: boolean
+  consumeParent?: boolean
   startedAtMs: number
   status: 'active' | 'shrinking'
   nextQueued?: boolean

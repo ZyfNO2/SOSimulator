@@ -29,6 +29,7 @@
     "childDefinitionId": "energy",
     "durationMs": 4000,
     "outputDefinitionId": "solid-clue",
-    "consumeChild": true
+    "consumeChild": true,
+    "consumeParent": true
   }
 ]
