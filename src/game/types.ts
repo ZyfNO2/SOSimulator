@@ -8,11 +8,14 @@ export type TableCard = {
   accent: string
   x: number
   y: number
+  quantity?: number
   parentCardId: string | null
   childCardId: string | null
   spawnedAtMs?: number
   spawnOriginX?: number
   spawnOriginY?: number
+  decayAtMs?: number | null
+  decayOutputDefinitionIds?: string[]
 }
 
 export type DragState = {
@@ -34,6 +37,12 @@ export type CardDefinitionRecord = {
   details?: string
 }
 
+export type OutputCardOverride = {
+  definitionId: string
+  decayMs?: number | null
+  decayOutputDefinitionIds?: string[]
+}
+
 export type InitialTableCardRecord = {
   definitionId: string
   x: number
@@ -42,24 +51,24 @@ export type InitialTableCardRecord = {
 
 export type CardOutputRule = {
   id: string
-  parentDefinitionId: string
-  childDefinitionId: string
+  inputDefinitionIds: string[]
   durationMs: number
   event: string
-  outputDefinitionId?: string | null
-  consumeChild: boolean
+  outputDefinitionIds: string[]
+  consumeInputIndexes: boolean[]
+  outputCardOverrides?: OutputCardOverride[]
 }
 
 export type ProductionRun = {
   id: string
   ruleId: string
   pairKey: string
-  parentCardId: string
-  childCardId: string
-  outputDefinitionId?: string | null
+  inputCardIds: string[]
+  outputDefinitionIds: string[]
+  outputCardOverrides?: OutputCardOverride[]
   event: string
   durationMs: number
-  consumeChild: boolean
+  consumeInputIndexes: boolean[]
   startedAtMs: number
   status: 'active' | 'shrinking'
   nextQueued?: boolean
@@ -69,7 +78,6 @@ export type ProductionRun = {
 
 export type ProductionMatch = {
   pairKey: string
-  parentCard: TableCard
-  childCard: TableCard
+  inputCards: TableCard[]
   rule: CardOutputRule
 }

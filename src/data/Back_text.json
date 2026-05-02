@@ -1,0 +1,150 @@
+{
+  "umbrella_presence": {
+    "Conditions": "blue-umbrella",
+    "max_txt_num": 4,
+    "Slide_txt": [
+      "只是一把伞而已。",
+      "它看起来太新了。",
+      "没人认领，反而像故意留下。",
+      "春日停下来看了第二眼。"
+    ]
+  },
+  "poor_clue_stage": {
+    "Conditions": "poor-clue",
+    "max_txt_num": 4,
+    "Slide_txt": [
+      "线索贫瘠得过分。",
+      "像是偶然，却又刚好能继续追查。",
+      "每一句闲话都在往它身上靠。"
+    ]
+  },
+  "testimony_stage": {
+    "Conditions": "vague-testimony",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "有人说见过它。",
+      "也有人说没见过。",
+      "每个人都记得一点点。",
+      "证词开始自己互相证明。"
+    ]
+  },
+  "haruhi_stage": {
+    "Conditions": "haruhi",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "她不会接受平凡收场。",
+      "如果事情不够特别，她就会逼它变特别。",
+      "春日对无聊的忍耐从来都很差。"
+    ]
+  },
+  "obsession_stage": {
+    "Conditions": "haruhi-obsession",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "这把伞不该被丢下。",
+      "她越相信，世界越像在附和。",
+      "失主开始像一个迟到太久的人。",
+      "从执念到证据，只差一点雨。"
+    ]
+  },
+  "record_stage": {
+    "Conditions": "contradictory-record",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "记录开始互相打架。",
+      "真相没有变清楚，只是版本变多了。",
+      "越矛盾，越像有人在赶工。"
+    ]
+  },
+  "photo_stage": {
+    "Conditions": "old-radio-photo",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "半把伞，半张背影。",
+      "照片知道得太少，却刚好足够。",
+      "世界好像很愿意给她证据。"
+    ]
+  },
+  "rainy_back_stage": {
+    "Conditions": "rainy-back",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "有人站在雨里，但看不见脸。",
+      "背影比正脸更容易被相信。",
+      "它像在等一个名字落下来。"
+    ]
+  },
+  "distortion_stage": {
+    "Conditions": "world-distortion",
+    "max_txt_num": 6,
+    "Slide_txt": [
+      "雨比天气预报更相信她。",
+      "答案不是被找到的。",
+      "世界开始自动补证。",
+      "故事在替自己找活路。"
+    ]
+  },
+  "kyon_stage": {
+    "Conditions": "kyon",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "总得有人负责怀疑。",
+      "阿虚来得不算早，但通常不会太晚。",
+      "吐槽有时也是一种现实防御。"
+    ]
+  },
+  "reality_resistance_stage": {
+    "Conditions": "reality-resistance",
+    "max_txt_num": 6,
+    "Slide_txt": [
+      "故事被暂时按住了。",
+      "现实还没赢，只是喘了口气。",
+      "如果没人继续推进，它会重新裂开。"
+    ]
+  },
+  "imaginary_owner_stage": {
+    "Conditions": "imaginary-owner",
+    "max_txt_num": 6,
+    "Slide_txt": [
+      "有人要从故事里走出来了。",
+      "失主开始拥有轮廓。",
+      "感谢，可能很快就会被说出口。"
+    ]
+  },
+  "final_rain_stage": {
+    "Conditions": "final-rain",
+    "max_txt_num": 6,
+    "Slide_txt": [
+      "放学时刻被拖得太长了。",
+      "这场雨在等一个结尾。",
+      "伞尖会指向谁，决定世界往哪里倒。"
+    ]
+  },
+  "ending_return_stage": {
+    "Conditions": "ending-return",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "普通的答案也能救场。",
+      "世界被拉回来了。",
+      "这把伞终于允许自己只是伞。"
+    ]
+  },
+  "ending_imaginary_stage": {
+    "Conditions": "ending-imaginary",
+    "max_txt_num": 5,
+    "Slide_txt": [
+      "虚构被允许活下来。",
+      "故事成立了。",
+      "现实因此悄悄少了一块原样。"
+    ]
+  },
+  "ending_collapse_stage": {
+    "Conditions": "ending-collapse",
+    "max_txt_num": 6,
+    "Slide_txt": [
+      "世界来不及收束了。",
+      "雨下在错误的地方。",
+      "有人终于意识到自己真的能改写现实。"
+    ]
+  }
+}

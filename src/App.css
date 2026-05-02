@@ -64,6 +64,34 @@
   background-size: 36px 36px;
 }
 
+.background-slide-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.background-slide-text {
+  position: absolute;
+  display: block;
+  color: #000;
+  font-family: var(--heading);
+  line-height: 1;
+  white-space: nowrap;
+  transform-origin: top left;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.background-slide-char {
+  display: inline-block;
+  opacity: 0;
+  animation-name: background-slide-reveal;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 .card {
   position: absolute;
   top: 0;
@@ -108,7 +136,10 @@
 }
 
 .card-name {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   font-family: var(--heading);
   font-size: 1.02rem;
@@ -142,6 +173,15 @@
   color: var(--text-soft);
   font-size: 0.72rem;
   line-height: 1.45;
+}
+
+.card-quantity {
+  flex: 0 0 auto;
+  color: var(--text-strong);
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  letter-spacing: 0.02em;
 }
 
 .card-resource {
@@ -350,6 +390,24 @@
   100% {
     transform: translate(var(--card-x), var(--card-y)) scale(1) rotate(0deg);
     opacity: 1;
+  }
+}
+
+@keyframes background-slide-reveal {
+  0% {
+    opacity: 0;
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 

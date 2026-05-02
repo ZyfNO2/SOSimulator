@@ -1,0 +1,90 @@
+[
+  {
+    "id": "event-card",
+    "note": "一把无人认领的蓝伞，突然显得不再普通。",
+    "details": "凉宫春日认定这是一件值得调查的大事。这里是整条故事的起点，投入时间、精力或零散线索，都会把事情往更不平凡的方向推。",
+    "rules": [
+      {
+        "childDefinitionId": "energy",
+        "title": "继续追查",
+        "description": "消耗精力，从失物招领室里榨出一点贫瘠线索。"
+      },
+      {
+        "childDefinitionId": "time",
+        "title": "扩大走访",
+        "description": "消耗时间，换来蓝伞和更多可供拼接的传闻碎片。"
+      },
+      {
+        "childDefinitionId": "money",
+        "title": "翻找旧资料",
+        "description": "用一点现实手段，换取广播站旧照片之类更像证据的东西。"
+      }
+    ]
+  },
+  {
+    "id": "event-testimony",
+    "note": "大家像约好了一样都记得一点，却又都说不完整。",
+    "details": "当调查推进到这里，失主已经不再只是问题，而成了一个会反过来塑造线索的中心。所有证词都在推着它成形。",
+    "rules": [
+      {
+        "childDefinitionId": "time",
+        "title": "整理口供",
+        "description": "把传闻慢慢压成矛盾记录，越整理越觉得不对。"
+      },
+      {
+        "childDefinitionId": "money",
+        "title": "翻拍存档",
+        "description": "花钱找旧资料，容易挖出广播站照片这种半真半假的证据。"
+      },
+      {
+        "childDefinitionId": "haruhi",
+        "title": "让春日介入",
+        "description": "一旦让春日正式卷进来，证词就会开始朝执念的方向偏移。"
+      }
+    ]
+  },
+  {
+    "id": "event-missing-owner",
+    "note": "这个人已经越来越像真实存在，却偏偏没有正式记录。",
+    "details": "到了这里，问题不再是查不查得到失主，而是世界为什么愿意替一个空洞的问题补上答案。阿虚与春日会在这里分化出不同立场。",
+    "rules": [
+      {
+        "childDefinitionId": "kyon-doubt",
+        "title": "坚持现实",
+        "description": "阿虚的怀疑会压出一层现实阻力，但那层阻力并不稳定。"
+      },
+      {
+        "childDefinitionId": "haruhi-obsession",
+        "title": "继续补完",
+        "description": "把春日的执念继续压上去，失主会更像一个真正的人。"
+      },
+      {
+        "childDefinitionId": "world-distortion",
+        "title": "接受异常",
+        "description": "如果任由世界异常继续发酵，终局很快就会被雨拖进来。"
+      }
+    ]
+  },
+  {
+    "id": "event-final-rain",
+    "note": "放学、雨幕、蓝伞和迟到太久的答案，全都堆在同一刻里。",
+    "details": "这里是终局容器。玩家之前积累出来的是哪一种力量，就会决定这场雨最终把世界带向哪里。",
+    "rules": [
+      {
+        "childDefinitionId": "kyon-doubt",
+        "title": "认领现实",
+        "description": "阿虚的怀疑会把事情往可落地的答案上压。"
+      },
+      {
+        "childDefinitionId": "imaginary-owner",
+        "title": "承认虚构",
+        "description": "如果失主已经被故事补完，雨里就会真的走出一个人。"
+      },
+      {
+        "childDefinitionId": "world-distortion",
+        "title": "放任失控",
+        "description": "继续让异常主导叙事，世界就会比结局先一步裂开。"
+      }
+    ]
+  }
+]

@@ -5,6 +5,7 @@
     "kind": "resource",
     "kindLabel": "资源",
     "note": "还有余温的清醒时刻。",
+    "details": "最普通也最稳定的投入。调查、打工、顶嘴、发呆，几乎所有事情都得先靠它开始。",
     "accent": "resource"
   },
   {
@@ -13,32 +14,8 @@
     "kind": "resource",
     "kindLabel": "资源",
     "note": "会流逝，也能被交换。",
+    "details": "放学前的一点空隙、下雨天的绕路、被春日强行占用的社团时间，都会在这里留下刻度。",
     "accent": "time"
-  },
-  {
-    "id": "poor-clue",
-    "name": "贫瘠线索",
-    "kind": "clue",
-    "kindLabel": "线索",
-    "note": "一切都像是偶然，但又不完全像。",
-    "accent": "clue"
-  },
-  {
-    "id": "daily-work",
-    "name": "日常工作",
-    "kind": "routine",
-    "kindLabel": "日常",
-    "note": "稳定、乏味、暂时有用。",
-    "accent": "routine"
-  },
-  {
-    "id": "event-card",
-    "name": "事件",
-    "kind": "event",
-    "kindLabel": "事件",
-    "note": "投入不同的子牌，会导向不同的结果。",
-    "details": "这是一个分支事件卡。你可以把资源叠到它上面，不同子牌会触发不同产出或消耗结果。",
-    "accent": "event"
   },
   {
     "id": "money",
@@ -46,6 +23,214 @@
     "kind": "resource",
     "kindLabel": "资源",
     "note": "可流动的日常回报。",
+    "details": "用来买便宜雨伞、冲洗旧照片、贿赂自动贩卖机前的情报来源。它不神秘，但很有用。",
     "accent": "money"
+  },
+  {
+    "id": "daily-work",
+    "name": "日常工作",
+    "kind": "routine",
+    "kindLabel": "日常",
+    "note": "稳定、乏味、暂时有用。",
+    "details": "如果不想被春日牵着鼻子走，总得先设法维持最普通的生活。",
+    "accent": "routine"
+  },
+  {
+    "id": "blue-umbrella",
+    "name": "蓝伞",
+    "kind": "clue",
+    "kindLabel": "物件",
+    "note": "失物招领室里那把太新的伞。",
+    "details": "它本来应该只是一把被忘记的折叠伞，可一旦被春日盯上，普通这件事就不再稳固了。",
+    "accent": "clue"
+  },
+  {
+    "id": "poor-clue",
+    "name": "贫瘠线索",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "一切都像是偶然，但又不完全像。",
+    "details": "值日生的随口一提、登记册上模糊的空白、走廊里不算情报的闲聊。单拿出来时什么都不是。",
+    "accent": "clue"
+  },
+  {
+    "id": "vague-testimony",
+    "name": "模糊证词",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "每个人都记得一点，但拼不成完整的人。",
+    "details": "这些证词最危险的地方不是真假难辨，而是它们会互相扶持，慢慢长出一个本来不存在的主人。",
+    "accent": "clue"
+  },
+  {
+    "id": "contradictory-record",
+    "name": "矛盾记录",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "同一件事，被写成了互相冲突的版本。",
+    "details": "这不是单纯的记错，更像是现实在赶着为一个故事补齐素材时留下的拼接痕迹。",
+    "accent": "clue"
+  },
+  {
+    "id": "old-radio-photo",
+    "name": "旧广播站照片",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "雨天、背影、半把伞。",
+    "details": "照片里的信息少得过分，却又多得令人不安。因为它正好足够让春日继续相信。",
+    "accent": "clue"
+  },
+  {
+    "id": "rainy-back",
+    "name": "雨中的背影",
+    "kind": "clue",
+    "kindLabel": "异象",
+    "note": "看不清脸，却越来越像某个人。",
+    "details": "一旦这张卡出现，说明调查已经不再只是调查，而是故事开始主动替自己寻找主角。",
+    "accent": "clue"
+  },
+  {
+    "id": "missing-owner",
+    "name": "不存在的失主",
+    "kind": "clue",
+    "kindLabel": "异象",
+    "note": "所有人都能想起一点，却没人找得到他。",
+    "details": "这是“失主”从概念开始变成现实的节点。它还不完整，但已经足够对世界施加压力。",
+    "accent": "clue"
+  },
+  {
+    "id": "haruhi",
+    "name": "凉宫春日",
+    "kind": "character",
+    "kindLabel": "角色",
+    "note": "她不会允许一把伞平凡收场。",
+    "details": "春日不是线索的持有者，而是会逼线索长出命运的人。她一旦登场，事情就开始脱离“只是调查”的范围。",
+    "accent": "event"
+  },
+  {
+    "id": "haruhi-obsession",
+    "name": "春日的执念",
+    "kind": "state",
+    "kindLabel": "状态",
+    "note": "她开始坚信，这把伞一定属于某个重要的人。",
+    "details": "这不是普通的好奇心，而是春日对“平凡收场”本能的拒绝。它会逼世界朝故事性更强的方向倾斜。",
+    "accent": "event"
+  },
+  {
+    "id": "world-distortion",
+    "name": "世界异常",
+    "kind": "state",
+    "kindLabel": "异常",
+    "note": "现实开始替她补完答案。",
+    "details": "当这张卡出现时，线索已经不再只是被发现，而是在被生成。继续放任下去，世界会越来越像她想象中的样子。",
+    "accent": "event"
+  },
+  {
+    "id": "kyon",
+    "name": "阿虚",
+    "kind": "character",
+    "kindLabel": "角色",
+    "note": "他是吐槽者，也是最后的刹车。",
+    "details": "阿虚通常出现得比真相晚一点，但总比崩坏早一点。他的作用不是找答案，而是提醒春日这个世界本来该有边界。",
+    "accent": "routine"
+  },
+  {
+    "id": "kyon-doubt",
+    "name": "阿虚的怀疑",
+    "kind": "state",
+    "kindLabel": "状态",
+    "note": "他开始觉得，问题也许根本不在失主身上。",
+    "details": "这是对故事继续自动补完的第一道真正阻力。它不浪漫，但很关键。",
+    "accent": "routine"
+  },
+  {
+    "id": "reality-resistance",
+    "name": "现实阻力",
+    "kind": "state",
+    "kindLabel": "状态",
+    "note": "故事被暂时按住了，但只是暂时。",
+    "details": "阿虚的否定与“失主问题”的残留短暂抵消，让世界停在一个不稳定的平衡点。若不继续推进，它会重新裂回原本的矛盾。",
+    "accent": "routine"
+  },
+  {
+    "id": "imaginary-owner",
+    "name": "虚构失主",
+    "kind": "state",
+    "kindLabel": "异象",
+    "note": "他开始拥有轮廓，像真的要来了。",
+    "details": "当春日对“失主”抱有足够强的确信时，这个本不存在的人就会从各种线索缝隙里被拼出来。",
+    "accent": "event"
+  },
+  {
+    "id": "final-rain",
+    "name": "最后一场雨",
+    "kind": "state",
+    "kindLabel": "终局",
+    "note": "答案要落下来了。",
+    "details": "这不是普通天气，而是整条故事在等待一个结尾。无论是承认平凡，还是让虚构成真，都会从这里分岔。",
+    "accent": "event"
+  },
+  {
+    "id": "ending-return",
+    "name": "阿虚认领蓝伞",
+    "kind": "ending",
+    "kindLabel": "结局",
+    "note": "用一个足够现实的答案，把世界从边缘拉回来。",
+    "details": "阿虚承认蓝伞是自己的，并用一个足够像他会做的理由结束这场过度膨胀的调查。事情没那么浪漫，但世界因此稳定了。",
+    "accent": "routine"
+  },
+  {
+    "id": "ending-imaginary",
+    "name": "虚构失主出现",
+    "kind": "ending",
+    "kindLabel": "结局",
+    "note": "世界把春日的执念当成了现实指令。",
+    "details": "那个本不该存在的人终于出现，像是在感谢春日让自己活了下来。故事成立了，但现实也被悄悄改写了。",
+    "accent": "event"
+  },
+  {
+    "id": "ending-collapse",
+    "name": "世界大乱",
+    "kind": "ending",
+    "kindLabel": "结局",
+    "note": "故事和现实一起失去了边界。",
+    "details": "当春日被迫直视自己的影响力，而世界又来不及重新稳定时，一切都开始朝错误的方向开裂。",
+    "accent": "event"
+  },
+  {
+    "id": "event-card",
+    "name": "失物招领室",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "一把没人认领的蓝伞，把春日的注意力完全钉在了这里。",
+    "details": "这是一切的起点。投入不同的卡，会让这起平凡失物事件逐渐长出传闻、线索与异常。",
+    "accent": "event"
+  },
+  {
+    "id": "event-testimony",
+    "name": "过于一致的证词",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "大家都说见过，但谁都说不完整。",
+    "details": "传闻开始汇聚成一个模糊的中心。越往下查，失主反而越像是被调查本身制造出来的。",
+    "accent": "event"
+  },
+  {
+    "id": "event-missing-owner",
+    "name": "不存在的失主",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "这个人开始有了形状，却始终没有记录。",
+    "details": "从这一刻起，问题已经不再是“他是谁”，而是“为什么世界愿意替他出现”。",
+    "accent": "event"
+  },
+  {
+    "id": "event-final-rain",
+    "name": "最后一场雨",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "放学、雨幕、伞尖，所有东西都在等结尾。",
+    "details": "这是终局节点。投入的不是普通资源，而是玩家此前一路积累出来的立场与异常。",
+    "accent": "event"
   }
 ]

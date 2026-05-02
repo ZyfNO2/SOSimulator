@@ -1,31 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
 import './App.css'
+import { CardBoard } from './components/CardBoard'
 import { EventCardDetail } from './components/EventCardDetail'
-import { ProductionEffect } from './components/ProductionEffect'
-import { cardDefinitionMap, initialCards } from './game/cardData'
 import {
-  CARD_SPAWN_ANIMATION_MS,
-  PRODUCTION_AUTO_REQUEUE_LEAD_MS,
-  PRODUCTION_RING_SHRINK_MS,
-} from './game/constants'
+  cardDefinitionMap,
+  initialCards,
+} from './game/cardData'
+import { PRODUCTION_AUTO_REQUEUE_LEAD_MS, PRODUCTION_RING_SHRINK_MS } from './game/constants'
 import {
   getProductionAnchor,
-  consumeChildCard,
+  consumeProductionCards,
   getProductionMatches,
-  spawnOutputCard,
+  resolveCardDecay,
+  spawnOutputCards,
 } from './game/production'
 import {
   bringCardToFront,
   clamp,
   clampCardPosition,
   detachCardFromParent,
-  getCardZIndex,
   getDescendantIds,
   getSnappedCardPosition,
+  mergeStackedResourceCards,
   updateStackRelationship,
 } from './game/stacking'
 import type { DragState, ProductionRun } from './game/types'
+import {
+  getNextStoryState,
+  INITIAL_STORY_STATE,
+  isSameStoryState,
+  type StoryState,
+  unlockStoryCards,
+} from './game/story'
 
 function App() {
   const boardRef = useRef<HTMLDivElement | null>(null)
@@ -37,12 +43,12 @@ function App() {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [productions, setProductions] = useState<ProductionRun[]>([])
   const [nowMs, setNowMs] = useState(() => Date.now())
-  const [selectedEventDefinitionId, setSelectedEventDefinitionId] = useState<string | null>(
-    null,
-  )
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [storyState, setStoryState] = useState<StoryState>(INITIAL_STORY_STATE)
+  const hasDecayingCards = cards.some((card) => typeof card.decayAtMs === 'number')
 
   useEffect(() => {
-    if (productions.length === 0) {
+    if (productions.length === 0 && !hasDecayingCards) {
       return undefined
     }
 
@@ -53,7 +59,7 @@ function App() {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [productions.length])
+  }, [hasDecayingCards, productions.length])
 
   useEffect(() => {
     const matches = getProductionMatches(cards)
@@ -94,12 +100,12 @@ function App() {
             id: `production-${productionSequenceRef.current}`,
             ruleId: match.rule.id,
             pairKey: match.pairKey,
-            parentCardId: match.parentCard.id,
-            childCardId: match.childCard.id,
-            outputDefinitionId: match.rule.outputDefinitionId,
+            inputCardIds: match.inputCards.map((card) => card.id),
+            outputDefinitionIds: match.rule.outputDefinitionIds,
+            outputCardOverrides: match.rule.outputCardOverrides,
             event: match.rule.event,
             durationMs: match.rule.durationMs,
-            consumeChild: match.rule.consumeChild,
+            consumeInputIndexes: match.rule.consumeInputIndexes,
             startedAtMs: Date.now(),
             status: 'active',
           })
@@ -186,12 +192,12 @@ function App() {
             id: `production-${productionSequenceRef.current}`,
             ruleId: match.rule.id,
             pairKey: match.pairKey,
-            parentCardId: match.parentCard.id,
-            childCardId: match.childCard.id,
-            outputDefinitionId: match.rule.outputDefinitionId,
+            inputCardIds: match.inputCards.map((card) => card.id),
+            outputDefinitionIds: match.rule.outputDefinitionIds,
+            outputCardOverrides: match.rule.outputCardOverrides,
             event: match.rule.event,
             durationMs: match.rule.durationMs,
-            consumeChild: match.rule.consumeChild,
+            consumeInputIndexes: match.rule.consumeInputIndexes,
             startedAtMs: nowMs,
             status: 'active',
           })
@@ -203,10 +209,10 @@ function App() {
         let nextCards = currentCards
 
         for (const run of finishedRuns) {
-          nextCards = consumeChildCard(nextCards, run)
           const anchor = getProductionAnchor(nextCards, run)
+          nextCards = consumeProductionCards(nextCards, run)
 
-          nextCards = spawnOutputCard(
+          nextCards = spawnOutputCards(
             nextCards,
             run,
             anchor.centerX,
@@ -221,6 +227,59 @@ function App() {
       })
     })
   }, [cards, nowMs, productions])
+
+  useEffect(() => {
+    if (!hasDecayingCards) {
+      return
+    }
+
+    const blockedCardIds = new Set(
+      productions
+        .filter((run) => run.status === 'active')
+        .flatMap((run) => run.inputCardIds),
+    )
+    const boardBounds = boardRef.current?.getBoundingClientRect()
+    const boardWidth = boardBounds?.width ?? 1200
+    const boardHeight = boardBounds?.height ?? 800
+
+    queueMicrotask(() => {
+      setCards((currentCards) =>
+        resolveCardDecay(
+          currentCards,
+          nowMs,
+          boardWidth,
+          boardHeight,
+          instanceSequenceRef,
+          blockedCardIds,
+        ),
+      )
+    })
+  }, [hasDecayingCards, nowMs, productions])
+
+  useEffect(() => {
+    const boardBounds = boardRef.current?.getBoundingClientRect()
+    const boardWidth = boardBounds?.width ?? 1200
+    const boardHeight = boardBounds?.height ?? 800
+    const unlockResult = unlockStoryCards(
+      cards,
+      storyState,
+      boardWidth,
+      boardHeight,
+      instanceSequenceRef,
+    )
+    const nextStoryState = {
+      ...getNextStoryState(unlockResult.nextCards, storyState),
+      unlockedDefinitionIds: unlockResult.nextUnlockedIds,
+    }
+
+    if (unlockResult.hasChanges) {
+      setCards(unlockResult.nextCards)
+    }
+
+    if (!isSameStoryState(nextStoryState, storyState)) {
+      setStoryState(nextStoryState)
+    }
+  }, [cards, storyState])
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
@@ -352,6 +411,7 @@ function App() {
 
     dragRef.current = null
     setDraggingId(null)
+    setCards((currentCards) => mergeStackedResourceCards(currentCards, dragState.cardId))
   }
 
   const handleCardClick = (cardId: string) => {
@@ -360,68 +420,37 @@ function App() {
       return
     }
 
-    const card = cards.find((candidate) => candidate.id === cardId)
-
-    if (!card || card.kind !== 'event') {
-      return
-    }
-
-    setSelectedEventDefinitionId(card.definitionId)
+    setSelectedCardId(cardId)
   }
 
-  const selectedEventDefinition = selectedEventDefinitionId
-    ? cardDefinitionMap.get(selectedEventDefinitionId) ?? null
+  const selectedCard = selectedCardId
+    ? cards.find((candidate) => candidate.id === selectedCardId) ?? null
+    : null
+  const selectedCardDefinition = selectedCard
+    ? cardDefinitionMap.get(selectedCard.definitionId) ?? null
     : null
 
   return (
     <main className="playground">
-      <section ref={boardRef} className="table" aria-label="游戏桌面空地">
-        <div className="table-noise" aria-hidden="true" />
+      <CardBoard
+        boardRef={boardRef}
+        cards={cards}
+        productions={productions}
+        draggingId={draggingId}
+        nowMs={nowMs}
+        storyState={storyState}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onCardClick={handleCardClick}
+      />
 
-        {productions.map((run) => (
-          <ProductionEffect key={run.id} run={run} nowMs={nowMs} cards={cards} />
-        ))}
-
-        {cards.map((card, index) => {
-          const isDragging = draggingId === card.id
-          const isSpawning =
-            typeof card.spawnedAtMs === 'number' &&
-            nowMs - card.spawnedAtMs < CARD_SPAWN_ANIMATION_MS
-
-          return (
-            <button
-              key={card.id}
-              type="button"
-              className={`card card-${card.accent}${isDragging ? ' is-dragging' : ''}${
-                isSpawning ? ' is-spawning' : ''
-              }`}
-              style={{
-                '--card-x': `${card.x}px`,
-                '--card-y': `${card.y}px`,
-                '--spawn-origin-x': `${card.spawnOriginX ?? card.x}px`,
-                '--spawn-origin-y': `${card.spawnOriginY ?? card.y}px`,
-                zIndex: getCardZIndex(cards, card.id, draggingId, index),
-              } as CSSProperties}
-              onPointerDown={(event) => handlePointerDown(event, card.id)}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              onClick={() => handleCardClick(card.id)}
-            >
-              <strong className="card-name">{card.name}</strong>
-              <span className="card-kind-band">
-                <span className="card-kind">{card.kindLabel}</span>
-              </span>
-              <span className="card-note">{card.note}</span>
-            </button>
-          )
-        })}
-      </section>
-
-      {selectedEventDefinition ? (
+      {selectedCard && selectedCardDefinition ? (
         <EventCardDetail
-          definition={selectedEventDefinition}
-          onClose={() => setSelectedEventDefinitionId(null)}
+          card={selectedCard}
+          definition={selectedCardDefinition}
+          nowMs={nowMs}
+          onClose={() => setSelectedCardId(null)}
         />
       ) : null}
     </main>

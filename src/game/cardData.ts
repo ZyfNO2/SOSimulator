@@ -4,11 +4,78 @@ import type {
   CardDefinitionRecord,
   CardOutputRule,
   InitialTableCardRecord,
+  OutputCardOverride,
   TableCard,
 } from './types'
 
 export const cardDefinitions = cardKinds as CardDefinitionRecord[]
-export const cardOutputRules = cardOutputs as CardOutputRule[]
+type RawCardOutputRuleRecord = {
+  id: string
+  durationMs: number
+  event?: string
+  inputDefinitionIds?: string[]
+  outputDefinitionIds?: string[]
+  consumeInputIndexes?: boolean[]
+  outputCardOverrides?: OutputCardOverride[]
+  parentDefinitionId?: string
+  childDefinitionId?: string
+  outputDefinitionId?: string | null
+  consumeParent?: boolean
+  consumeChild?: boolean
+}
+
+function getRuleInputDefinitionIds(rule: RawCardOutputRuleRecord) {
+  if (rule.inputDefinitionIds && rule.inputDefinitionIds.length > 0) {
+    return rule.inputDefinitionIds
+  }
+
+  if (rule.parentDefinitionId && rule.childDefinitionId) {
+    return [rule.parentDefinitionId, rule.childDefinitionId]
+  }
+
+  return []
+}
+
+function getRuleOutputDefinitionIds(rule: RawCardOutputRuleRecord) {
+  if (rule.outputDefinitionIds) {
+    return rule.outputDefinitionIds
+  }
+
+  return typeof rule.outputDefinitionId === 'string' ? [rule.outputDefinitionId] : []
+}
+
+function getRuleConsumeInputIndexes(
+  rule: RawCardOutputRuleRecord,
+  inputDefinitionIds: string[],
+) {
+  if (rule.consumeInputIndexes && rule.consumeInputIndexes.length > 0) {
+    return inputDefinitionIds.map((_, index) => rule.consumeInputIndexes?.[index] ?? false)
+  }
+
+  if (inputDefinitionIds.length === 2) {
+    return [rule.consumeParent ?? false, rule.consumeChild ?? false]
+  }
+
+  return inputDefinitionIds.map(() => false)
+}
+
+function normalizeCardOutputRule(rule: RawCardOutputRuleRecord): CardOutputRule {
+  const inputDefinitionIds = getRuleInputDefinitionIds(rule)
+
+  return {
+    id: rule.id,
+    inputDefinitionIds,
+    durationMs: rule.durationMs,
+    event: rule.event ?? '',
+    outputDefinitionIds: getRuleOutputDefinitionIds(rule),
+    consumeInputIndexes: getRuleConsumeInputIndexes(rule, inputDefinitionIds),
+    outputCardOverrides: rule.outputCardOverrides,
+  }
+}
+
+export const cardOutputRules = (cardOutputs as RawCardOutputRuleRecord[]).map(
+  normalizeCardOutputRule,
+)
 export const cardDefinitionMap = new Map(cardDefinitions.map((card) => [card.id, card]))
 
 export const initialTableCardKinds: InitialTableCardRecord[] = [
@@ -53,6 +120,8 @@ export function createTableCardFromDefinition(
     spawnedAtMs?: number
     spawnOriginX?: number
     spawnOriginY?: number
+    decayAtMs?: number | null
+    decayOutputDefinitionIds?: string[]
   },
 ): TableCard {
   return {
@@ -65,11 +134,14 @@ export function createTableCardFromDefinition(
     accent: definition.accent,
     x,
     y,
+    quantity: 1,
     parentCardId: null,
     childCardId: null,
     spawnedAtMs: options?.spawnedAtMs,
     spawnOriginX: options?.spawnOriginX,
     spawnOriginY: options?.spawnOriginY,
+    decayAtMs: options?.decayAtMs,
+    decayOutputDefinitionIds: options?.decayOutputDefinitionIds,
   }
 }
 

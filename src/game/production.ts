@@ -7,47 +7,72 @@ import {
   CARD_WIDTH,
 } from './constants'
 import { clamp } from './stacking'
-import type { ProductionMatch, ProductionRun, TableCard } from './types'
+import type {
+  ProductionMatch,
+  ProductionRun,
+  TableCard,
+} from './types'
 
 export function getProductionMatches(cards: TableCard[]) {
   const matches: ProductionMatch[] = []
+  const matchKeys = new Set<string>()
 
-  for (const parentCard of cards) {
-    if (!parentCard.childCardId) {
-      continue
+  for (const startCard of cards) {
+    for (const rule of cardOutputRules) {
+      const inputCards = getMatchedInputCards(cards, startCard.id, rule.inputDefinitionIds)
+
+      if (!inputCards) {
+        continue
+      }
+
+      const pairKey = `${rule.id}:${inputCards.map((card) => card.id).join(':')}`
+
+      if (matchKeys.has(pairKey)) {
+        continue
+      }
+
+      matchKeys.add(pairKey)
+      matches.push({
+        pairKey,
+        inputCards,
+        rule,
+      })
     }
-
-    const childCard = cards.find((card) => card.id === parentCard.childCardId)
-
-    if (!childCard) {
-      continue
-    }
-
-    const rule = cardOutputRules.find(
-      (candidate) =>
-        candidate.parentDefinitionId === parentCard.definitionId &&
-        candidate.childDefinitionId === childCard.definitionId,
-    )
-
-    if (!rule) {
-      continue
-    }
-
-    matches.push({
-      pairKey: `${rule.id}:${parentCard.id}:${childCard.id}`,
-      parentCard,
-      childCard,
-      rule,
-    })
   }
 
   return matches
 }
 
-export function getProductionAnchor(cards: TableCard[], run: ProductionRun) {
-  const parentCard = cards.find((card) => card.id === run.parentCardId)
+function getMatchedInputCards(
+  cards: TableCard[],
+  startCardId: string,
+  inputDefinitionIds: string[],
+) {
+  const matchedCards: TableCard[] = []
+  let currentId: string | null = startCardId
 
-  if (!parentCard) {
+  for (const definitionId of inputDefinitionIds) {
+    if (!currentId) {
+      return null
+    }
+
+    const card = cards.find((candidate) => candidate.id === currentId)
+
+    if (!card || card.definitionId !== definitionId) {
+      return null
+    }
+
+    matchedCards.push(card)
+    currentId = card.childCardId
+  }
+
+  return matchedCards
+}
+
+export function getProductionAnchor(cards: TableCard[], run: ProductionRun) {
+  const anchorCard = cards.find((card) => card.id === run.inputCardIds[0])
+
+  if (!anchorCard) {
     return {
       centerX: CARD_WIDTH / 2,
       centerY: CARD_HEIGHT / 2,
@@ -55,12 +80,12 @@ export function getProductionAnchor(cards: TableCard[], run: ProductionRun) {
   }
 
   return {
-    centerX: parentCard.x + CARD_WIDTH / 2,
-    centerY: parentCard.y + CARD_HEIGHT / 2,
+    centerX: anchorCard.x + CARD_WIDTH / 2,
+    centerY: anchorCard.y + CARD_HEIGHT / 2,
   }
 }
 
-export function spawnOutputCard(
+export function spawnOutputCards(
   cards: TableCard[],
   run: ProductionRun,
   centerX: number,
@@ -69,80 +94,217 @@ export function spawnOutputCard(
   boardHeight: number,
   instanceSequenceRef: MutableRefObject<number>,
 ) {
-  if (!run.outputDefinitionId) {
-    return cards
+  let nextCards = cards
+
+  for (let index = 0; index < run.outputDefinitionIds.length; index += 1) {
+    const definitionId = run.outputDefinitionIds[index]
+    const definition = cardDefinitionMap.get(definitionId)
+
+    if (!definition) {
+      continue
+    }
+
+    const override =
+      run.outputCardOverrides?.find((candidate) => candidate.definitionId === definitionId) ??
+      run.outputCardOverrides?.[index]
+
+    instanceSequenceRef.current += 1
+
+    const angleSeed = (instanceSequenceRef.current + index) * 1.61803398875
+    const angle = (angleSeed % 1) * Math.PI * 2
+    const distance =
+      CARD_SPAWN_DISTANCE_MIN +
+      ((instanceSequenceRef.current * 17 + index * 13) %
+        (CARD_SPAWN_DISTANCE_MAX - CARD_SPAWN_DISTANCE_MIN + 1))
+
+    const targetX = clamp(
+      centerX - CARD_WIDTH / 2 + Math.cos(angle) * distance,
+      0,
+      Math.max(boardWidth - CARD_WIDTH, 0),
+    )
+    const targetY = clamp(
+      centerY - CARD_HEIGHT / 2 + Math.sin(angle) * distance,
+      0,
+      Math.max(boardHeight - CARD_HEIGHT, 0),
+    )
+
+    const spawnedCard = createTableCardFromDefinition(
+      definition,
+      `${definition.id}-${instanceSequenceRef.current}`,
+      targetX,
+      targetY,
+      {
+        spawnedAtMs: Date.now(),
+        spawnOriginX: centerX - CARD_WIDTH / 2,
+        spawnOriginY: centerY - CARD_HEIGHT / 2,
+        decayAtMs:
+          typeof override?.decayMs === 'number' ? Date.now() + override.decayMs : null,
+        decayOutputDefinitionIds: override?.decayOutputDefinitionIds,
+      },
+    )
+
+    nextCards = [...nextCards, spawnedCard]
   }
 
-  const definition = cardDefinitionMap.get(run.outputDefinitionId)
-
-  if (!definition) {
-    return cards
-  }
-
-  instanceSequenceRef.current += 1
-
-  const angleSeed = instanceSequenceRef.current * 1.61803398875
-  const angle = (angleSeed % 1) * Math.PI * 2
-  const distance =
-    CARD_SPAWN_DISTANCE_MIN +
-    ((instanceSequenceRef.current * 17) %
-      (CARD_SPAWN_DISTANCE_MAX - CARD_SPAWN_DISTANCE_MIN + 1))
-
-  const targetX = clamp(
-    centerX - CARD_WIDTH / 2 + Math.cos(angle) * distance,
-    0,
-    Math.max(boardWidth - CARD_WIDTH, 0),
-  )
-  const targetY = clamp(
-    centerY - CARD_HEIGHT / 2 + Math.sin(angle) * distance,
-    0,
-    Math.max(boardHeight - CARD_HEIGHT, 0),
-  )
-
-  const spawnedCard = createTableCardFromDefinition(
-    definition,
-    `${definition.id}-${instanceSequenceRef.current}`,
-    targetX,
-    targetY,
-    {
-      spawnedAtMs: Date.now(),
-      spawnOriginX: centerX - CARD_WIDTH / 2,
-      spawnOriginY: centerY - CARD_HEIGHT / 2,
-    },
-  )
-
-  return [...cards, spawnedCard]
+  return nextCards
 }
 
-export function consumeChildCard(cards: TableCard[], run: ProductionRun) {
-  if (!run.consumeChild) {
+export function consumeProductionCards(cards: TableCard[], run: ProductionRun) {
+  const removedIds = new Set<string>()
+  const decrementedIds = new Set<string>()
+  const cardMap = new Map(cards.map((card) => [card.id, card]))
+
+  run.inputCardIds.forEach((cardId, index) => {
+    if (!run.consumeInputIndexes[index]) {
+      return
+    }
+
+    const card = cardMap.get(cardId)
+    const quantity = card?.quantity ?? 1
+
+    if (quantity > 1) {
+      decrementedIds.add(cardId)
+      return
+    }
+
+    removedIds.add(cardId)
+  })
+
+  if (removedIds.size === 0) {
+    if (decrementedIds.size === 0) {
+      return cards
+    }
+
+    return cards.map((card) =>
+      decrementedIds.has(card.id)
+        ? {
+            ...card,
+            quantity: Math.max((card.quantity ?? 1) - 1, 1),
+          }
+        : card,
+    )
+  }
+
+  const findNearestRemainingParent = (parentCardId: string | null) => {
+    let currentId = parentCardId
+
+    while (currentId && removedIds.has(currentId)) {
+      currentId = cardMap.get(currentId)?.parentCardId ?? null
+    }
+
+    return currentId
+  }
+
+  const findNearestRemainingChild = (childCardId: string | null) => {
+    let currentId = childCardId
+
+    while (currentId && removedIds.has(currentId)) {
+      currentId = cardMap.get(currentId)?.childCardId ?? null
+    }
+
+    return currentId
+  }
+
+  return cards
+    .filter((card) => !removedIds.has(card.id))
+    .map((card) => {
+      const nextCard = {
+        ...card,
+        parentCardId: findNearestRemainingParent(card.parentCardId),
+        childCardId: findNearestRemainingChild(card.childCardId),
+      }
+
+      if (decrementedIds.has(card.id)) {
+        return {
+          ...nextCard,
+          quantity: Math.max((card.quantity ?? 1) - 1, 1),
+        }
+      }
+
+      return nextCard
+    })
+}
+
+export function resolveCardDecay(
+  cards: TableCard[],
+  nowMs: number,
+  boardWidth: number,
+  boardHeight: number,
+  instanceSequenceRef: MutableRefObject<number>,
+  blockedCardIds?: Set<string>,
+) {
+  const decayingCards = cards.filter(
+    (card) =>
+      typeof card.decayAtMs === 'number' &&
+      card.decayAtMs <= nowMs &&
+      !blockedCardIds?.has(card.id),
+  )
+
+  if (decayingCards.length === 0) {
     return cards
   }
 
-  const childIdsToRemove = getCardWithDescendants(cards, run.childCardId)
+  let nextCards = cards
+
+  for (const card of decayingCards) {
+    const definitionIds = card.decayOutputDefinitionIds ?? []
+    const centerX = card.x + CARD_WIDTH / 2
+    const centerY = card.y + CARD_HEIGHT / 2
+
+    nextCards = consumeDecayCard(nextCards, card.id)
+
+    const decayRun: ProductionRun = {
+      id: `decay-${card.id}`,
+      ruleId: `decay-${card.definitionId}`,
+      pairKey: `decay-${card.id}`,
+      inputCardIds: [card.id],
+      outputDefinitionIds: definitionIds,
+      outputCardOverrides: undefined,
+      event: '',
+      durationMs: 0,
+      consumeInputIndexes: [true],
+      startedAtMs: nowMs,
+      status: 'active',
+    }
+
+    nextCards = spawnOutputCards(
+      nextCards,
+      decayRun,
+      centerX,
+      centerY,
+      boardWidth,
+      boardHeight,
+      instanceSequenceRef,
+    )
+  }
+
+  return nextCards
+}
+
+function consumeDecayCard(cards: TableCard[], cardId: string) {
+  const targetCard = cards.find((card) => card.id === cardId)
+
+  if (!targetCard) {
+    return cards
+  }
 
   return cards
-    .filter((card) => !childIdsToRemove.has(card.id))
+    .filter((card) => card.id !== cardId)
     .map((card) => {
-      if (card.id === run.parentCardId) {
+      if (card.id === targetCard.parentCardId) {
         return {
           ...card,
-          childCardId: null,
+          childCardId: targetCard.childCardId,
+        }
+      }
+
+      if (card.id === targetCard.childCardId) {
+        return {
+          ...card,
+          parentCardId: targetCard.parentCardId,
         }
       }
 
       return card
     })
-}
-
-function getCardWithDescendants(cards: TableCard[], rootCardId: string) {
-  const ids = new Set<string>()
-  let currentId: string | null = rootCardId
-
-  while (currentId) {
-    ids.add(currentId)
-    currentId = cards.find((card) => card.id === currentId)?.childCardId ?? null
-  }
-
-  return ids
 }

@@ -177,6 +177,46 @@ export function updateStackRelationship(
   })
 }
 
+export function mergeStackedResourceCards(cards: TableCard[], movingCardId: string) {
+  const movingCard = cards.find((card) => card.id === movingCardId)
+
+  if (
+    !movingCard ||
+    !movingCard.parentCardId ||
+    movingCard.kind !== 'resource' ||
+    movingCard.childCardId
+  ) {
+    return cards
+  }
+
+  const parentCard = cards.find((card) => card.id === movingCard.parentCardId)
+
+  if (
+    !parentCard ||
+    parentCard.kind !== 'resource' ||
+    parentCard.definitionId !== movingCard.definitionId
+  ) {
+    return cards
+  }
+
+  const movingQuantity = movingCard.quantity ?? 1
+  const parentQuantity = parentCard.quantity ?? 1
+
+  return cards
+    .filter((card) => card.id !== movingCard.id)
+    .map((card) => {
+      if (card.id === parentCard.id) {
+        return {
+          ...card,
+          quantity: parentQuantity + movingQuantity,
+          childCardId: null,
+        }
+      }
+
+      return card
+    })
+}
+
 export function getCardZIndex(
   cards: TableCard[],
   cardId: string,
