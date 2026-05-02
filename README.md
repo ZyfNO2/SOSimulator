@@ -20,18 +20,27 @@
 
 
 
-## 工作完成截至 5.2 3.50am --芬奇
+## 当前实现状态
 
-- 启动 npm run dev
-- 初始界面
-- 卡牌种类[CardKind](.\src\data\CardKind.json)
-- 卡牌吸附,对应吸附后有产出动画
-- 事件卡牌能点开
-- 事件有不同的产出线[CardOutput](.\src\data\CardOutput.json)
-- 我的codex蹬限额了，先睡了
+- 已有完整桌面拖拽与吸附链
+- 已支持多输入 / 多输出规则
+- 已支持资源堆叠与按数量消耗，例如 `时间 X3`
+- 已支持左下角 `精力 / 时间` 母牌：场上总量最多 `2`，少于 `2` 时母牌自动补回，满 `2` 时不显示回充遮罩
+- 已支持自动分解卡，例如 `现实阻力`
+- 所有卡都可点击查看说明、来源和用途
+- 已接入故事版数据：
+  - [CardKind](.\src\data\CardKind.json)
+  - [CardOutput](.\src\data\CardOutput.json)
+  - [Back_text](.\src\data\Back_text.json)
+  - [Event_Card](.\src\data\Event_Card.json)
+- 已有轻量 `storyState`
+- 已支持关键角色 / 事件自动解锁
+- 已有右侧主线卡牌收纳栏
+- 已有文件日志输出到项目根目录 `app.log`（dev / preview 环境）
 
-## 后续想更改的
+## 当前更值得继续做的
 
-- 根据游戏开始时间刷新时间和精力，有持有上限
-- 牌相同情况下可以叠加比如：金钱 X2
-- 感觉手牌区可以不用做
+- 验证三条结局链是否都能稳定走通
+- 把 `BackgroundSlideText` 进一步完全数据化
+- 继续拆分 [App.tsx](./src/App.tsx)
+- 把通用详情面板从 `EventCardDetail` 改名

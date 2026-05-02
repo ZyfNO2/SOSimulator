@@ -16,15 +16,20 @@ export type TableCard = {
   spawnOriginY?: number
   decayAtMs?: number | null
   decayOutputDefinitionIds?: string[]
+  isMother?: boolean
+  refillStartedAtMs?: number | null
 }
 
 export type DragState = {
   cardId: string
+  stackCardIds: string[]
   pointerId: number
+  button: number
   offsetX: number
   offsetY: number
   startClientX: number
   startClientY: number
+  source?: 'board' | 'tray' | 'mother'
 }
 
 export type CardDefinitionRecord = {
@@ -47,6 +52,7 @@ export type InitialTableCardRecord = {
   definitionId: string
   x: number
   y: number
+  quantity?: number
 }
 
 export type CardOutputRule = {

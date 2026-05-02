@@ -2,11 +2,24 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { CardBoard } from './components/CardBoard'
 import { EventCardDetail } from './components/EventCardDetail'
+import { MainlineTray } from './components/MainlineTray'
 import {
   cardDefinitionMap,
+  createTableCardFromDefinition,
   initialCards,
 } from './game/cardData'
-import { PRODUCTION_AUTO_REQUEUE_LEAD_MS, PRODUCTION_RING_SHRINK_MS } from './game/constants'
+import {
+  CARD_HEIGHT,
+  CARD_SPAWN_ANIMATION_MS,
+  CARD_WIDTH,
+  PRODUCTION_RING_SHRINK_MS,
+  RESOURCE_MOTHER_GAP,
+  RESOURCE_MOTHER_MAX_QUANTITY,
+  RESOURCE_MOTHER_MIN_QUANTITY,
+  RESOURCE_MOTHER_PADDING_BOTTOM,
+  RESOURCE_MOTHER_PADDING_LEFT,
+  RESOURCE_MOTHER_REFILL_MS,
+} from './game/constants'
 import {
   getProductionAnchor,
   consumeProductionCards,
@@ -14,8 +27,9 @@ import {
   resolveCardDecay,
   spawnOutputCards,
 } from './game/production'
+import { logGameEvent } from './game/log'
 import {
-  bringCardToFront,
+  bringStackToFront,
   clamp,
   clampCardPosition,
   detachCardFromParent,
@@ -24,8 +38,9 @@ import {
   mergeStackedResourceCards,
   updateStackRelationship,
 } from './game/stacking'
-import type { DragState, ProductionRun } from './game/types'
+import type { DragState, ProductionRun, TableCard } from './game/types'
 import {
+  MAINLINE_CARD_DEFINITION_IDS,
   getNextStoryState,
   INITIAL_STORY_STATE,
   isSameStoryState,
@@ -33,22 +48,86 @@ import {
   unlockStoryCards,
 } from './game/story'
 
+const MOTHER_CARD_DEFINITION_IDS = ['energy', 'time'] as const
+
+function getMotherCardPosition(
+  definitionId: (typeof MOTHER_CARD_DEFINITION_IDS)[number],
+  boardWidth: number,
+  boardHeight: number,
+) {
+  const index = MOTHER_CARD_DEFINITION_IDS.indexOf(definitionId)
+  const x = RESOURCE_MOTHER_PADDING_LEFT + index * (CARD_WIDTH + RESOURCE_MOTHER_GAP)
+  const y = Math.max(boardHeight - CARD_HEIGHT - RESOURCE_MOTHER_PADDING_BOTTOM, 0)
+
+  return {
+    x: clamp(x, 0, Math.max(boardWidth - CARD_WIDTH, 0)),
+    y,
+  }
+}
+
+function getTotalCopiesOnTable(cards: TableCard[], definitionId: string) {
+  return cards.reduce((total, card) => {
+    if (card.definitionId !== definitionId) {
+      return total
+    }
+
+    return total + (card.quantity ?? 1)
+  }, 0)
+}
+
 function App() {
   const boardRef = useRef<HTMLDivElement | null>(null)
+  const trayRef = useRef<HTMLDivElement | null>(null)
   const dragRef = useRef<DragState | null>(null)
   const suppressClickRef = useRef(false)
   const productionSequenceRef = useRef(0)
   const instanceSequenceRef = useRef(0)
+  const startOverlayTimeoutRef = useRef<number | null>(null)
   const [cards, setCards] = useState(initialCards)
-  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [archivedCards, setArchivedCards] = useState<TableCard[]>([])
+  const [isTrayOpen, setIsTrayOpen] = useState(false)
+  const [draggingStackIds, setDraggingStackIds] = useState<string[] | null>(null)
   const [productions, setProductions] = useState<ProductionRun[]>([])
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [storyState, setStoryState] = useState<StoryState>(INITIAL_STORY_STATE)
+  const [hasStarted, setHasStarted] = useState(false)
+  const [isStartOverlayVisible, setIsStartOverlayVisible] = useState(true)
+  const [isStartingGame, setIsStartingGame] = useState(false)
   const hasDecayingCards = cards.some((card) => typeof card.decayAtMs === 'number')
+  const hasSpawningCards = cards.some(
+    (card) =>
+      typeof card.spawnedAtMs === 'number' &&
+      nowMs - card.spawnedAtMs < CARD_SPAWN_ANIMATION_MS,
+  )
+  const hasRefillingMotherCards = cards.some(
+    (card) => card.isMother && typeof card.refillStartedAtMs === 'number',
+  )
 
   useEffect(() => {
-    if (productions.length === 0 && !hasDecayingCards) {
+    void logGameEvent('app', 'Application started', {
+      initialCards: cards.map((card) => ({
+        definitionId: card.definitionId,
+        quantity: card.quantity ?? 1,
+      })),
+    })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (startOverlayTimeoutRef.current !== null) {
+        window.clearTimeout(startOverlayTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (
+      productions.length === 0 &&
+      !hasDecayingCards &&
+      !hasSpawningCards &&
+      !hasRefillingMotherCards
+    ) {
       return undefined
     }
 
@@ -59,7 +138,173 @@ function App() {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [hasDecayingCards, productions.length])
+  }, [hasDecayingCards, hasRefillingMotherCards, hasSpawningCards, productions.length])
+
+  useEffect(() => {
+    const boardBounds = boardRef.current?.getBoundingClientRect()
+
+    if (!boardBounds) {
+      return
+    }
+
+    setCards((currentCards) => {
+      let hasChanges = false
+
+      const nextCards = currentCards.map((card) => {
+        if (!card.isMother || (card.definitionId !== 'energy' && card.definitionId !== 'time')) {
+          return card
+        }
+
+        const nextPosition = getMotherCardPosition(
+          card.definitionId,
+          boardBounds.width,
+          boardBounds.height,
+        )
+
+        if (card.x === nextPosition.x && card.y === nextPosition.y) {
+          return card
+        }
+
+        hasChanges = true
+        return {
+          ...card,
+          x: nextPosition.x,
+          y: nextPosition.y,
+          parentCardId: null,
+          childCardId: null,
+        }
+      })
+
+      return hasChanges ? nextCards : currentCards
+    })
+  }, [hasStarted])
+
+  useEffect(() => {
+    const handleResize = () => {
+      const boardBounds = boardRef.current?.getBoundingClientRect()
+
+      if (!boardBounds) {
+        return
+      }
+
+      setCards((currentCards) => {
+        let hasChanges = false
+
+        const nextCards = currentCards.map((card) => {
+          if (!card.isMother || (card.definitionId !== 'energy' && card.definitionId !== 'time')) {
+            return card
+          }
+
+          const nextPosition = getMotherCardPosition(
+            card.definitionId,
+            boardBounds.width,
+            boardBounds.height,
+          )
+
+          if (card.x === nextPosition.x && card.y === nextPosition.y) {
+            return card
+          }
+
+          hasChanges = true
+          return {
+            ...card,
+            x: nextPosition.x,
+            y: nextPosition.y,
+            parentCardId: null,
+            childCardId: null,
+          }
+        })
+
+        return hasChanges ? nextCards : currentCards
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  useEffect(() => {
+    setCards((currentCards) => {
+      let hasChanges = false
+
+      const nextCards = currentCards.map((card) => {
+        if (!card.isMother) {
+          return card
+        }
+
+        const totalCopies = getTotalCopiesOnTable(currentCards, card.definitionId)
+
+        if (totalCopies >= RESOURCE_MOTHER_MAX_QUANTITY) {
+          if (typeof card.refillStartedAtMs !== 'number') {
+            return card
+          }
+
+          hasChanges = true
+          return {
+            ...card,
+            refillStartedAtMs: null,
+          }
+        }
+
+        if (typeof card.refillStartedAtMs === 'number') {
+          return card
+        }
+
+        hasChanges = true
+        return {
+          ...card,
+          refillStartedAtMs: Date.now(),
+        }
+      })
+
+      return hasChanges ? nextCards : currentCards
+    })
+  }, [cards])
+
+  useEffect(() => {
+    if (!hasRefillingMotherCards) {
+      return
+    }
+
+    setCards((currentCards) => {
+      let hasChanges = false
+
+      const nextCards = currentCards.map((card) => {
+        if (!card.isMother) {
+          return card
+        }
+
+        const totalCopies = getTotalCopiesOnTable(currentCards, card.definitionId)
+
+        if (
+          typeof card.refillStartedAtMs !== 'number' ||
+          nowMs - card.refillStartedAtMs < RESOURCE_MOTHER_REFILL_MS
+        ) {
+          return card
+        }
+
+        hasChanges = true
+
+        if (totalCopies >= RESOURCE_MOTHER_MAX_QUANTITY) {
+          return {
+            ...card,
+            refillStartedAtMs: null,
+          }
+        }
+
+        return {
+          ...card,
+          quantity: Math.min((card.quantity ?? 0) + 1, RESOURCE_MOTHER_MAX_QUANTITY),
+          refillStartedAtMs: null,
+        }
+      })
+
+      return hasChanges ? nextCards : currentCards
+    })
+  }, [hasRefillingMotherCards, nowMs])
 
   useEffect(() => {
     const matches = getProductionMatches(cards)
@@ -125,13 +370,6 @@ function App() {
       (run) => run.status === 'active' && nowMs - run.startedAtMs >= run.durationMs,
     )
 
-    const requeueRuns = productions.filter(
-      (run) =>
-        run.status === 'active' &&
-        !run.nextQueued &&
-        nowMs - run.startedAtMs >= run.durationMs - PRODUCTION_AUTO_REQUEUE_LEAD_MS,
-    )
-
     const shrinkFinishedIds = new Set(
       productions
         .filter(
@@ -145,7 +383,6 @@ function App() {
 
     if (
       finishedRuns.length === 0 &&
-      requeueRuns.length === 0 &&
       shrinkFinishedIds.size === 0
     ) {
       return
@@ -155,60 +392,22 @@ function App() {
     const boardBounds = boardRef.current?.getBoundingClientRect()
     const boardWidth = boardBounds?.width ?? 1200
     const boardHeight = boardBounds?.height ?? 800
-    const activeMatchMap = new Map(
-      getProductionMatches(cards).map((match) => [match.pairKey, match]),
-    )
 
     queueMicrotask(() => {
       setProductions((currentRuns) => {
-        const nextRuns = currentRuns
-          .filter((run) => !finishedIds.has(run.id) && !shrinkFinishedIds.has(run.id))
-          .map((run) => {
-            const needsRequeue =
-              run.status === 'active' &&
-              !run.nextQueued &&
-              nowMs - run.startedAtMs >= run.durationMs - PRODUCTION_AUTO_REQUEUE_LEAD_MS &&
-              activeMatchMap.has(run.pairKey)
-
-            if (needsRequeue) {
-              return {
-                ...run,
-                nextQueued: true,
-              }
-            }
-
-            return run
-          })
-
-        for (const run of requeueRuns) {
-          const match = activeMatchMap.get(run.pairKey)
-
-          if (!match) {
-            continue
-          }
-
-          productionSequenceRef.current += 1
-          nextRuns.push({
-            id: `production-${productionSequenceRef.current}`,
-            ruleId: match.rule.id,
-            pairKey: match.pairKey,
-            inputCardIds: match.inputCards.map((card) => card.id),
-            outputDefinitionIds: match.rule.outputDefinitionIds,
-            outputCardOverrides: match.rule.outputCardOverrides,
-            event: match.rule.event,
-            durationMs: match.rule.durationMs,
-            consumeInputIndexes: match.rule.consumeInputIndexes,
-            startedAtMs: nowMs,
-            status: 'active',
-          })
-        }
-
-        return nextRuns
+        return currentRuns.filter(
+          (run) => !finishedIds.has(run.id) && !shrinkFinishedIds.has(run.id),
+        )
       })
       setCards((currentCards) => {
         let nextCards = currentCards
 
         for (const run of finishedRuns) {
+          void logGameEvent('production', 'Production finished', {
+            ruleId: run.ruleId,
+            inputs: run.inputCardIds,
+            outputs: run.outputDefinitionIds,
+          })
           const anchor = getProductionAnchor(nextCards, run)
           nextCards = consumeProductionCards(nextCards, run)
 
@@ -273,72 +472,40 @@ function App() {
     }
 
     if (unlockResult.hasChanges) {
+      const newlyUnlockedIds = unlockResult.nextUnlockedIds.filter(
+        (unlockId) => !storyState.unlockedDefinitionIds.includes(unlockId),
+      )
+      const newlySpawnedDefinitionIds = unlockResult.nextCards
+        .filter(
+          (card) =>
+            !cards.some((existingCard) => existingCard.id === card.id) &&
+            !cards.some((existingCard) => existingCard.definitionId === card.definitionId),
+        )
+        .map((card) => card.definitionId)
+      void logGameEvent('story', 'Story unlock triggered', {
+        unlocks: newlyUnlockedIds,
+        spawnedCards: newlySpawnedDefinitionIds,
+      })
       setCards(unlockResult.nextCards)
     }
 
     if (!isSameStoryState(nextStoryState, storyState)) {
+      void logGameEvent('story', 'Story state updated', nextStoryState)
       setStoryState(nextStoryState)
     }
   }, [cards, storyState])
 
-  const handlePointerDown = (
-    event: React.PointerEvent<HTMLButtonElement>,
-    cardId: string,
-  ) => {
-    const board = boardRef.current
-    const cardBounds = event.currentTarget.getBoundingClientRect()
-
-    if (!board) {
-      return
-    }
-
-    const boardBounds = board.getBoundingClientRect()
-    const cardX = cardBounds.left - boardBounds.left
-    const cardY = cardBounds.top - boardBounds.top
-
-    dragRef.current = {
-      cardId,
-      pointerId: event.pointerId,
-      offsetX: event.clientX - cardBounds.left,
-      offsetY: event.clientY - cardBounds.top,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-    }
-    suppressClickRef.current = false
-
-    event.currentTarget.setPointerCapture(event.pointerId)
-
-    setCards((currentCards) => {
-      const detachedCards = detachCardFromParent(currentCards, cardId)
-
-      return bringCardToFront(detachedCards, cardId).map((card) =>
-        card.id === cardId ? { ...card, x: cardX, y: cardY } : card,
-      )
-    })
-    setDraggingId(cardId)
-  }
-
-  const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const moveDraggedCard = (pointerId: number, clientX: number, clientY: number) => {
     const dragState = dragRef.current
     const board = boardRef.current
 
-    if (!dragState || !board || dragState.pointerId !== event.pointerId) {
-      return
-    }
-
-    if ((event.buttons & 1) === 0) {
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }
-
-      dragRef.current = null
-      setDraggingId(null)
+    if (!dragState || !board || dragState.pointerId !== pointerId) {
       return
     }
 
     if (
-      Math.abs(event.clientX - dragState.startClientX) > 4 ||
-      Math.abs(event.clientY - dragState.startClientY) > 4
+      Math.abs(clientX - dragState.startClientX) > 4 ||
+      Math.abs(clientY - dragState.startClientY) > 4
     ) {
       suppressClickRef.current = true
     }
@@ -347,8 +514,8 @@ function App() {
     const nextPosition = clampCardPosition(
       bounds.width,
       bounds.height,
-      event.clientX - bounds.left - dragState.offsetX,
-      event.clientY - bounds.top - dragState.offsetY,
+      clientX - bounds.left - dragState.offsetX,
+      clientY - bounds.top - dragState.offsetY,
     )
 
     setCards((currentCards) => {
@@ -364,7 +531,7 @@ function App() {
         return currentCards
       }
 
-      const descendantIds = getDescendantIds(currentCards, dragState.cardId)
+      const descendantIds = new Set(dragState.stackCardIds.slice(1))
       const deltaX = snapResult.x - movingCard.x
       const deltaY = snapResult.y - movingCard.y
 
@@ -398,6 +565,229 @@ function App() {
     })
   }
 
+  const removeCardPreservingChain = (currentCards: TableCard[], cardId: string) => {
+    const targetCard = currentCards.find((card) => card.id === cardId)
+
+    if (!targetCard) {
+      return currentCards
+    }
+
+    return currentCards
+      .filter((card) => card.id !== cardId)
+      .map((card) => {
+        if (card.id === targetCard.parentCardId) {
+          return {
+            ...card,
+            childCardId: targetCard.childCardId,
+          }
+        }
+
+        if (card.id === targetCard.childCardId) {
+          return {
+            ...card,
+            parentCardId: targetCard.parentCardId,
+          }
+        }
+
+        return card
+      })
+  }
+
+  const finishDraggedCard = (pointerId: number, clientX: number, clientY: number) => {
+    const dragState = dragRef.current
+
+    if (!dragState || dragState.pointerId !== pointerId) {
+      return
+    }
+
+    dragRef.current = null
+    setDraggingStackIds(null)
+
+    const trayBounds = trayRef.current?.getBoundingClientRect()
+    const droppedInTray =
+      trayBounds &&
+      clientX >= trayBounds.left &&
+      clientX <= trayBounds.right &&
+      clientY >= trayBounds.top &&
+      clientY <= trayBounds.bottom
+
+    const movingCardSnapshot = cards.find((card) => card.id === dragState.cardId) ?? null
+    const archivedCard =
+      droppedInTray &&
+      movingCardSnapshot &&
+      MAINLINE_CARD_DEFINITION_IDS.has(movingCardSnapshot.definitionId) &&
+      !movingCardSnapshot.childCardId
+        ? {
+            ...movingCardSnapshot,
+            parentCardId: null,
+            childCardId: null,
+          }
+        : null
+
+    setCards((currentCards) => {
+      if (archivedCard) {
+        return removeCardPreservingChain(currentCards, archivedCard.id)
+      }
+
+      const mergedCards = mergeStackedResourceCards(currentCards, dragState.cardId)
+
+      if (!mergedCards.some((card) => card.id === dragState.cardId)) {
+        return mergedCards
+      }
+
+      return bringStackToFront(mergedCards, dragState.cardId)
+    })
+
+    if (archivedCard !== null) {
+      setArchivedCards((currentArchived) => [...currentArchived, archivedCard])
+      void logGameEvent('tray', 'Archived mainline card', {
+        definitionId: archivedCard.definitionId,
+      })
+    }
+  }
+
+  useEffect(() => {
+    const handleWindowPointerMove = (event: PointerEvent) => {
+      moveDraggedCard(event.pointerId, event.clientX, event.clientY)
+    }
+
+    const handleWindowPointerUp = (event: PointerEvent) => {
+      finishDraggedCard(event.pointerId, event.clientX, event.clientY)
+    }
+
+    window.addEventListener('pointermove', handleWindowPointerMove)
+    window.addEventListener('pointerup', handleWindowPointerUp)
+    window.addEventListener('pointercancel', handleWindowPointerUp)
+
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointerMove)
+      window.removeEventListener('pointerup', handleWindowPointerUp)
+      window.removeEventListener('pointercancel', handleWindowPointerUp)
+    }
+  }, [])
+
+  const handlePointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    cardId: string,
+  ) => {
+    const board = boardRef.current
+    const targetCard = cards.find((card) => card.id === cardId)
+    const cardBounds = event.currentTarget.getBoundingClientRect()
+
+    if (!board || !targetCard) {
+      return
+    }
+
+    const boardBounds = board.getBoundingClientRect()
+    const cardX = cardBounds.left - boardBounds.left
+    const cardY = cardBounds.top - boardBounds.top
+
+    if (targetCard.isMother) {
+      if (event.button !== 0 || (targetCard.quantity ?? 0) <= RESOURCE_MOTHER_MIN_QUANTITY) {
+        return
+      }
+
+      suppressClickRef.current = true
+      instanceSequenceRef.current += 1
+      const splitCardId = `${targetCard.definitionId}-${instanceSequenceRef.current}`
+      const nextPosition = clampCardPosition(
+        boardBounds.width,
+        boardBounds.height,
+        event.clientX - boardBounds.left - CARD_WIDTH / 2,
+        event.clientY - boardBounds.top - CARD_HEIGHT / 2,
+      )
+      const definition = cardDefinitionMap.get(targetCard.definitionId)
+
+      if (!definition) {
+        return
+      }
+
+      const splitCard = createTableCardFromDefinition(
+        definition,
+        splitCardId,
+        nextPosition.x,
+        nextPosition.y,
+      )
+
+      dragRef.current = {
+        cardId: splitCardId,
+        stackCardIds: [splitCardId],
+        pointerId: event.pointerId,
+        button: event.button,
+        offsetX: CARD_WIDTH / 2,
+        offsetY: CARD_HEIGHT / 2,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        source: 'mother',
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId)
+
+      setCards((currentCards) => {
+        const nextCards = currentCards.map((card) => {
+          if (card.id !== targetCard.id) {
+            return card
+          }
+
+          return {
+            ...card,
+            quantity: Math.max((card.quantity ?? 0) - 1, RESOURCE_MOTHER_MIN_QUANTITY),
+            refillStartedAtMs: null,
+          }
+        })
+
+        return [...nextCards, splitCard]
+      })
+      setDraggingStackIds([splitCardId])
+      void logGameEvent('resource', 'Split child card from mother card', {
+        definitionId: targetCard.definitionId,
+        remainingQuantity: Math.max((targetCard.quantity ?? 0) - 1, RESOURCE_MOTHER_MIN_QUANTITY),
+      })
+      return
+    }
+
+    const stackCardIds = [cardId, ...getDescendantIds(cards, cardId)]
+
+    dragRef.current = {
+      cardId,
+      stackCardIds,
+      pointerId: event.pointerId,
+      button: event.button,
+      offsetX: event.clientX - cardBounds.left,
+      offsetY: event.clientY - cardBounds.top,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      source: 'board',
+    }
+    suppressClickRef.current = false
+
+    event.currentTarget.setPointerCapture(event.pointerId)
+
+    setCards((currentCards) => {
+      const detachedCards = detachCardFromParent(currentCards, cardId)
+
+      return detachedCards.map((card) =>
+        card.id === cardId ? { ...card, x: cardX, y: cardY } : card,
+      )
+    })
+    setDraggingStackIds(stackCardIds)
+  }
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const dragState = dragRef.current
+    const pointerMask = dragState?.button === 0 ? 1 : 2
+
+    if ((event.buttons & pointerMask) === 0) {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId)
+      }
+
+      finishDraggedCard(event.pointerId, event.clientX, event.clientY)
+      return
+    }
+    moveDraggedCard(event.pointerId, event.clientX, event.clientY)
+  }
+
   const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
     const dragState = dragRef.current
 
@@ -409,9 +799,62 @@ function App() {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
 
-    dragRef.current = null
-    setDraggingId(null)
-    setCards((currentCards) => mergeStackedResourceCards(currentCards, dragState.cardId))
+    finishDraggedCard(event.pointerId, event.clientX, event.clientY)
+  }
+
+  const handleStoredCardPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    cardId: string,
+  ) => {
+    const board = boardRef.current
+    const storedCard = archivedCards.find((card) => card.id === cardId)
+
+    if (!board || !storedCard) {
+      return
+    }
+
+    const boardBounds = board.getBoundingClientRect()
+    const nextX = clampCardPosition(
+      boardBounds.width,
+      boardBounds.height,
+      event.clientX - boardBounds.left - 59,
+      event.clientY - boardBounds.top - 78,
+    ).x
+    const nextY = clampCardPosition(
+      boardBounds.width,
+      boardBounds.height,
+      event.clientX - boardBounds.left - 59,
+      event.clientY - boardBounds.top - 78,
+    ).y
+
+    dragRef.current = {
+      cardId,
+      stackCardIds: [cardId],
+      pointerId: event.pointerId,
+      button: event.button,
+      offsetX: 59,
+      offsetY: 78,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      source: 'tray',
+    }
+    suppressClickRef.current = false
+
+    setArchivedCards((currentArchived) => currentArchived.filter((card) => card.id !== cardId))
+    setCards((currentCards) => [
+      ...currentCards,
+      {
+        ...storedCard,
+        x: nextX,
+        y: nextY,
+        parentCardId: null,
+        childCardId: null,
+      },
+    ])
+    setDraggingStackIds([cardId])
+    void logGameEvent('tray', 'Restored mainline card to board', {
+      definitionId: storedCard.definitionId,
+    })
   }
 
   const handleCardClick = (cardId: string) => {
@@ -430,19 +873,61 @@ function App() {
     ? cardDefinitionMap.get(selectedCard.definitionId) ?? null
     : null
 
+  const handleStartGame = () => {
+    if (hasStarted || isStartingGame) {
+      return
+    }
+
+    const revealStartedAtMs = Date.now()
+    const boardBounds = boardRef.current?.getBoundingClientRect()
+    const fallbackCenterX = boardBounds ? boardBounds.width / 2 : window.innerWidth / 2
+    const fallbackCenterY = boardBounds ? boardBounds.height * 0.72 : window.innerHeight * 0.72
+
+    setHasStarted(true)
+    setIsStartingGame(true)
+    setNowMs(revealStartedAtMs)
+    setCards((currentCards) =>
+      currentCards.map((card, index) => ({
+        ...card,
+        spawnedAtMs: revealStartedAtMs + index * 90,
+        spawnOriginX: fallbackCenterX - 59,
+        spawnOriginY: fallbackCenterY - 78,
+      })),
+    )
+    void logGameEvent('ui', 'Start screen dismissed')
+
+    startOverlayTimeoutRef.current = window.setTimeout(() => {
+      setIsStartOverlayVisible(false)
+      setIsStartingGame(false)
+      startOverlayTimeoutRef.current = null
+    }, 420)
+  }
+
   return (
-    <main className="playground">
+    <main
+      className={`playground${!hasStarted ? ' is-waiting-start' : ''}${
+        isStartingGame ? ' is-starting-game' : ''
+      }`}
+    >
       <CardBoard
         boardRef={boardRef}
         cards={cards}
         productions={productions}
-        draggingId={draggingId}
+        draggingStackIds={draggingStackIds}
         nowMs={nowMs}
         storyState={storyState}
+        hasStarted={hasStarted}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onCardClick={handleCardClick}
+      />
+      <MainlineTray
+        trayRef={trayRef}
+        isOpen={isTrayOpen}
+        archivedCards={archivedCards}
+        onToggle={() => setIsTrayOpen((current) => !current)}
+        onStoredCardPointerDown={handleStoredCardPointerDown}
       />
 
       {selectedCard && selectedCardDefinition ? (
@@ -452,6 +937,24 @@ function App() {
           nowMs={nowMs}
           onClose={() => setSelectedCardId(null)}
         />
+      ) : null}
+
+      {isStartOverlayVisible ? (
+        <section
+          className={`start-screen${isStartingGame ? ' is-leaving' : ''}`}
+          aria-label="开始界面"
+        >
+          <div className="start-screen-panel">
+            <p className="start-screen-label">SOSimulator</p>
+            <h1>失物招领室的神明</h1>
+            <p className="start-screen-copy">
+              点下开始，让桌面上的线索一张张浮现。之后你就可以拖动卡牌，推进这场被蓝伞拧歪的日常。
+            </p>
+            <button type="button" className="start-screen-button" onClick={handleStartGame}>
+              开始
+            </button>
+          </div>
+        </section>
       ) : null}
     </main>
   )

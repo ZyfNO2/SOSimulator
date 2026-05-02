@@ -15,9 +15,10 @@ export function CardBoard({
   boardRef,
   cards,
   productions,
-  draggingId,
+  draggingStackIds,
   nowMs,
   storyState,
+  hasStarted,
   onPointerDown,
   onPointerMove,
   onPointerUp,
@@ -26,14 +27,29 @@ export function CardBoard({
   boardRef: MutableRefObject<HTMLDivElement | null>
   cards: TableCard[]
   productions: ProductionRun[]
-  draggingId: string | null
+  draggingStackIds: string[] | null
   nowMs: number
   storyState: StoryState
+  hasStarted: boolean
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, cardId: string) => void
   onPointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void
   onPointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void
   onCardClick: (cardId: string) => void
 }) {
+  const orderedCards = (() => {
+    if (!draggingStackIds || draggingStackIds.length === 0) {
+      return cards
+    }
+
+    const draggingIdSet = new Set(draggingStackIds)
+    const draggingCards = draggingStackIds
+      .map((cardId) => cards.find((card) => card.id === cardId) ?? null)
+      .filter((card): card is TableCard => card !== null)
+    const remainingCards = cards.filter((card) => !draggingIdSet.has(card.id))
+
+    return [...remainingCards, ...draggingCards]
+  })()
+
   return (
     <section ref={boardRef} className="table" aria-label="游戏桌面空地">
       <div className="table-noise" aria-hidden="true" />
@@ -43,14 +59,15 @@ export function CardBoard({
         <ProductionEffect key={run.id} run={run} nowMs={nowMs} cards={cards} />
       ))}
 
-      {cards.map((card, index) => (
+      {orderedCards.map((card, index) => (
         <CardView
           key={card.id}
           card={card}
           cards={cards}
           index={index}
-          draggingId={draggingId}
+          draggingStackIds={draggingStackIds}
           nowMs={nowMs}
+          hasStarted={hasStarted}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

@@ -80,34 +80,37 @@ export const cardDefinitionMap = new Map(cardDefinitions.map((card) => [card.id,
 
 export const initialTableCardKinds: InitialTableCardRecord[] = [
   {
-    definitionId: 'energy',
+    definitionId: 'blue-umbrella',
     x: 80,
     y: 92,
   },
   {
-    definitionId: 'time',
-    x: 220,
+    definitionId: 'event-card',
+    x: 228,
     y: 82,
   },
   {
-    definitionId: 'poor-clue',
-    x: 286,
-    y: 146,
+    definitionId: 'energy',
+    x: 24,
+    y: 615,
+    quantity: 2,
+  },
+  {
+    definitionId: 'time',
+    x: 164,
+    y: 615,
+    quantity: 2,
   },
   {
     definitionId: 'daily-work',
-    x: 492,
+    x: 688,
     y: 108,
   },
   {
-    definitionId: 'event-card',
-    x: 660,
-    y: 110,
-  },
-  {
     definitionId: 'money',
-    x: 838,
-    y: 92,
+    x: 856,
+    y: 96,
+    quantity: 1
   },
 ]
 
@@ -142,22 +145,28 @@ export function createTableCardFromDefinition(
     spawnOriginY: options?.spawnOriginY,
     decayAtMs: options?.decayAtMs,
     decayOutputDefinitionIds: options?.decayOutputDefinitionIds,
+    isMother: false,
+    refillStartedAtMs: null,
   }
 }
 
 export const initialCards: TableCard[] = initialTableCardKinds
-  .map((entry) => {
+  .map((entry): TableCard | null => {
     const definition = cardDefinitionMap.get(entry.definitionId)
 
     if (!definition) {
       return null
     }
 
-    return createTableCardFromDefinition(
-      definition,
-      entry.definitionId,
-      entry.x,
-      entry.y,
-    )
+    return {
+      ...createTableCardFromDefinition(
+        definition,
+        entry.definitionId,
+        entry.x,
+        entry.y,
+      ),
+      quantity: entry.quantity ?? 1,
+      isMother: entry.definitionId === 'energy' || entry.definitionId === 'time',
+    }
   })
   .filter((card): card is TableCard => card !== null)

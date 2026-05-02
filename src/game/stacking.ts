@@ -21,6 +21,14 @@ export function bringCardToFront(cards: TableCard[], cardId: string) {
   return nextCards
 }
 
+export function bringStackToFront(cards: TableCard[], rootCardId: string) {
+  const stackIds = new Set<string>([rootCardId, ...getDescendantIds(cards, rootCardId)])
+  const stackCards = cards.filter((card) => stackIds.has(card.id))
+  const remainingCards = cards.filter((card) => !stackIds.has(card.id))
+
+  return [...remainingCards, ...stackCards]
+}
+
 export function detachCardFromParent(cards: TableCard[], cardId: string) {
   const movingCard = cards.find((card) => card.id === cardId)
 
@@ -64,8 +72,16 @@ export function getSnappedCardPosition(
     return { x: rawX, y: rawY, parentCardId: null }
   }
 
+  if (movingCard.isMother) {
+    return { x: movingCard.x, y: movingCard.y, parentCardId: null }
+  }
+
   for (const targetCard of cards) {
-    if (targetCard.id === movingCardId || blockedTargetIds.has(targetCard.id)) {
+    if (
+      targetCard.id === movingCardId ||
+      blockedTargetIds.has(targetCard.id) ||
+      targetCard.isMother
+    ) {
       continue
     }
 
@@ -184,7 +200,8 @@ export function mergeStackedResourceCards(cards: TableCard[], movingCardId: stri
     !movingCard ||
     !movingCard.parentCardId ||
     movingCard.kind !== 'resource' ||
-    movingCard.childCardId
+    movingCard.childCardId ||
+    movingCard.isMother
   ) {
     return cards
   }
@@ -194,7 +211,8 @@ export function mergeStackedResourceCards(cards: TableCard[], movingCardId: stri
   if (
     !parentCard ||
     parentCard.kind !== 'resource' ||
-    parentCard.definitionId !== movingCard.definitionId
+    parentCard.definitionId !== movingCard.definitionId ||
+    parentCard.isMother
   ) {
     return cards
   }
@@ -220,16 +238,15 @@ export function mergeStackedResourceCards(cards: TableCard[], movingCardId: stri
 export function getCardZIndex(
   cards: TableCard[],
   cardId: string,
-  draggingId: string | null,
+  draggingStackIds: string[] | null,
   fallbackIndex: number,
 ) {
   const depth = getStackDepth(cards, cardId)
-  const activeStackIds = draggingId
-    ? new Set([draggingId, ...getDescendantIds(cards, draggingId)])
-    : null
+  const activeStackIds = draggingStackIds ? new Set(draggingStackIds) : null
 
   if (activeStackIds?.has(cardId)) {
-    return 1000 + depth
+    const dragDepth = draggingStackIds?.indexOf(cardId) ?? depth
+    return 1000 + Math.max(dragDepth, 0)
   }
 
   const rootCardId = getRootCardId(cards, cardId)

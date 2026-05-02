@@ -18,6 +18,31 @@ export const INITIAL_STORY_STATE: StoryState = {
   unlockedDefinitionIds: [],
 }
 
+export const MAINLINE_CARD_DEFINITION_IDS = new Set([
+  'blue-umbrella',
+  'poor-clue',
+  'vague-testimony',
+  'contradictory-record',
+  'old-radio-photo',
+  'rainy-back',
+  'missing-owner',
+  'haruhi',
+  'haruhi-obsession',
+  'world-distortion',
+  'kyon',
+  'kyon-doubt',
+  'reality-resistance',
+  'imaginary-owner',
+  'final-rain',
+  'ending-return',
+  'ending-imaginary',
+  'ending-collapse',
+  'event-card',
+  'event-testimony',
+  'event-missing-owner',
+  'event-final-rain',
+])
+
 const STORY_UNLOCKS: Array<{
   id: string
   triggerDefinitionIds: string[]

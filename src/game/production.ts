@@ -48,6 +48,24 @@ function getMatchedInputCards(
   startCardId: string,
   inputDefinitionIds: string[],
 ) {
+  const directMatch = getMatchedInputCardsInOrder(cards, startCardId, inputDefinitionIds)
+
+  if (directMatch) {
+    return directMatch
+  }
+
+  if (inputDefinitionIds.length === 2) {
+    return getMatchedInputCardsInOrder(cards, startCardId, [...inputDefinitionIds].reverse())
+  }
+
+  return null
+}
+
+function getMatchedInputCardsInOrder(
+  cards: TableCard[],
+  startCardId: string,
+  inputDefinitionIds: string[],
+) {
   const matchedCards: TableCard[] = []
   let currentId: string | null = startCardId
 

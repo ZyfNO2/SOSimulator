@@ -4,6 +4,15 @@
   padding: 0;
 }
 
+.playground.is-waiting-start .table {
+  filter: saturate(0.82) brightness(0.82);
+}
+
+.playground.is-starting-game .table {
+  filter: saturate(0.94) brightness(0.94);
+  transition: filter 360ms ease;
+}
+
 .playground-hud {
   position: absolute;
   top: 24px;
@@ -113,12 +122,23 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
   color: var(--text-strong);
   text-align: left;
+  overflow: hidden;
   transform: translate(var(--card-x), var(--card-y));
   opacity: 1;
   cursor: grab;
   user-select: none;
   touch-action: none;
   transition: box-shadow 140ms ease;
+}
+
+.card.is-hidden-before-start {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.card.is-waiting-spawn {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .card:hover {
@@ -146,6 +166,8 @@
   line-height: 1.08;
   font-weight: 600;
   margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .card-kind-band {
@@ -158,6 +180,8 @@
   border-top: 1px solid rgba(60, 42, 22, 0.35);
   border-bottom: 1px solid rgba(60, 42, 22, 0.35);
   background: rgba(89, 64, 41, 0.14);
+  position: relative;
+  z-index: 1;
 }
 
 .card-kind {
@@ -173,6 +197,8 @@
   color: var(--text-soft);
   font-size: 0.72rem;
   line-height: 1.45;
+  position: relative;
+  z-index: 1;
 }
 
 .card-quantity {
@@ -182,6 +208,38 @@
   line-height: inherit;
   font-weight: inherit;
   letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+}
+
+.card-mother-hint {
+  margin-top: 8px;
+  color: rgba(36, 24, 15, 0.76);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  position: relative;
+  z-index: 1;
+}
+
+.card.is-mother-card {
+  cursor: default;
+  box-shadow:
+    0 22px 36px rgba(47, 32, 19, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.card.is-mother-card.is-refilling::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 31px;
+  bottom: 0;
+  background:
+    linear-gradient(180deg, rgba(18, 14, 10, 0.58), rgba(18, 14, 10, 0.46) 36%, rgba(18, 14, 10, 0.28) 100%);
+  transform: translateY(calc(var(--refill-progress, 0) * 100%));
+  pointer-events: none;
+  box-shadow: inset 0 -10px 18px rgba(255, 249, 239, 0.1);
 }
 
 .card-resource {
@@ -372,6 +430,199 @@
 .event-detail-rules span {
   color: var(--text-soft);
   line-height: 1.5;
+}
+
+.mainline-tray {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 12;
+  width: 92px;
+  min-height: 120px;
+  border: 1px solid rgba(58, 43, 29, 0.2);
+  background: rgba(248, 242, 232, 0.78);
+  box-shadow: 0 18px 34px rgba(33, 23, 14, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.mainline-tray.is-open {
+  width: min(340px, calc(100vw - 48px));
+  min-height: 240px;
+}
+
+.mainline-tray-toggle {
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.mainline-tray-toggle span {
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.mainline-tray-toggle strong {
+  font-family: var(--heading);
+  font-size: 1.4rem;
+}
+
+.mainline-tray-panel {
+  padding: 14px;
+  border-top: 1px solid rgba(58, 43, 29, 0.12);
+}
+
+.mainline-tray-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mainline-tray-header p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.mainline-tray-list {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 10px;
+}
+
+.mainline-tray-card {
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(58, 43, 29, 0.16);
+  text-align: left;
+  cursor: grab;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 238, 225, 0.88)),
+    #f8f0e3;
+}
+
+.mainline-tray-card:active {
+  cursor: grabbing;
+}
+
+.mainline-tray-card-name {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--heading);
+  font-size: 0.96rem;
+  line-height: 1.1;
+}
+
+.mainline-tray-card-quantity {
+  flex: 0 0 auto;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+.mainline-tray-card-kind {
+  color: var(--text-soft);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.mainline-tray-empty {
+  padding: 14px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  border: 1px dashed rgba(58, 43, 29, 0.16);
+}
+
+.start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(27, 18, 12, 0.48), rgba(27, 18, 12, 0.7)),
+    radial-gradient(circle at top, rgba(255, 241, 222, 0.12), transparent 42%);
+  backdrop-filter: blur(12px);
+  transition:
+    opacity 360ms ease,
+    visibility 360ms ease;
+}
+
+.start-screen.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.start-screen-panel {
+  width: min(560px, calc(100vw - 40px));
+  padding: 34px 32px 30px;
+  border: 1px solid rgba(255, 244, 226, 0.14);
+  background:
+    linear-gradient(180deg, rgba(67, 50, 38, 0.82), rgba(30, 22, 16, 0.92)),
+    rgba(30, 22, 16, 0.88);
+  box-shadow:
+    0 28px 80px rgba(7, 5, 4, 0.34),
+    inset 0 1px 0 rgba(255, 252, 246, 0.18);
+  color: rgba(255, 246, 233, 0.88);
+}
+
+.start-screen-label {
+  color: rgba(241, 200, 154, 0.8);
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.start-screen-copy {
+  max-width: 29rem;
+  margin-top: 12px;
+  color: rgba(255, 239, 219, 0.8);
+  line-height: 1.8;
+}
+
+.start-screen-button {
+  margin-top: 24px;
+  padding: 12px 28px;
+  border: 1px solid rgba(255, 228, 190, 0.26);
+  background:
+    linear-gradient(180deg, rgba(237, 205, 153, 0.94), rgba(200, 149, 88, 0.94));
+  color: #2d1c10;
+  font-family: var(--heading);
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: 0 16px 28px rgba(12, 8, 6, 0.22);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.start-screen-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 36px rgba(12, 8, 6, 0.28);
+  filter: brightness(1.03);
+}
+
+.start-screen-button:active {
+  transform: translateY(1px);
 }
 
 @keyframes card-spawn {
