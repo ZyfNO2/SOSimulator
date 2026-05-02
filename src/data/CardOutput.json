@@ -8,15 +8,7 @@
     "outputDefinitionId": "sos-declaration",
     "consumeChild": false
   },
-  {
-    "id": "sos-declaration-haruhi-thought",
-    "parentDefinitionId": "sos-declaration",
-    "childDefinitionId": "haruhi",
-    "durationMs": 3000,
-    "event": "团长觉醒",
-    "outputDefinitionId": "sos-thought",
-    "consumeChild": false
-  },
+
   {
     "id": "spawner-haruhi-location",
     "parentDefinitionId": "location-spawner",
@@ -73,7 +65,7 @@
     "event": "文艺社的发现",
     "outputDefinitionId": "yuki",
     "consumeChild": false,
-    "consumeParent": true
+    "consumeParent": false
   },
   {
     "id": "location-literature-character-yuki-kyon",
@@ -83,7 +75,7 @@
     "event": "文艺社的发现",
     "outputDefinitionId": "yuki",
     "consumeChild": false,
-    "consumeParent": true
+    "consumeParent": false
   },
   {
     "id": "location-classroom-2-character-mikuru",

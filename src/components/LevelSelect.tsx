@@ -24,11 +24,15 @@ export function LevelSelect({ onSelectLevel }: LevelSelectProps) {
           <span className="level-desc">凉宫春日还没有发言……</span>
         </button>
 
-        <div className="level-card level-card-locked">
+        <button
+          type="button"
+          className="level-card level-card-unlocked"
+          onClick={() => onSelectLevel(2)}
+        >
           <span className="level-number">2</span>
-          <span className="level-name">???</span>
-          <span className="level-desc">通关关卡1后解锁</span>
-        </div>
+          <span className="level-name">电脑的获取</span>
+          <span className="level-desc">SOS团需要一台电脑……</span>
+        </button>
 
         <div className="level-card level-card-locked">
           <span className="level-number">3</span>

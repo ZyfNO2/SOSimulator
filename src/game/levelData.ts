@@ -65,8 +65,10 @@ export function createLevel2Config(): LevelConfig {
   const mikuruDef = cardDefinitionMap.get('mikuru')
   const computerClubDef = cardDefinitionMap.get('computer-club')
   const presidentDef = cardDefinitionMap.get('computer-club-president')
+  const convenienceStoreDef = cardDefinitionMap.get('convenience-store')
+  const electronicsStoreDef = cardDefinitionMap.get('electronics-store')
 
-  if (!haruhiDef || !kyonDef || !yukiDef || !mikuruDef || !computerClubDef || !presidentDef) {
+  if (!haruhiDef || !kyonDef || !yukiDef || !mikuruDef || !computerClubDef || !presidentDef || !convenienceStoreDef || !electronicsStoreDef) {
     throw new Error('Missing required card definitions for level 2')
   }
 
@@ -95,6 +97,8 @@ export function createLevel2Config(): LevelConfig {
       createCard(mikuruDef, 'mikuru-level2', 550, 100),
       createCard(computerClubDef, 'computer-club-level2', 100, 300),
       createCard(presidentDef, 'computer-club-president-level2', 300, 300),
+      createCard(convenienceStoreDef, 'convenience-store-level2', 500, 300),
+      createCard(electronicsStoreDef, 'electronics-store-level2', 700, 300),
     ],
     immovableCardIds: [],
     victoryCondition: 'produce-card',

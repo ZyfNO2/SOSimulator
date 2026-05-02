@@ -1,0 +1,105 @@
+.level-hint {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(74, 52, 33, 0.14);
+  box-shadow: 0 4px 16px rgba(54, 38, 18, 0.08);
+}
+
+.level-hint p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+.back-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 250;
+  padding: 6px 16px;
+  border: 1px solid rgba(74, 52, 33, 0.18);
+  border-radius: 8px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--text-strong);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: box-shadow 140ms ease;
+}
+
+.back-btn:hover {
+  box-shadow: 0 4px 12px rgba(54, 38, 18, 0.12);
+}
+
+.card.is-working {
+  filter: grayscale(0.75) brightness(0.82);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.card.is-working:hover {
+  box-shadow:
+    0 18px 32px rgba(47, 32, 19, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.card.is-shaking {
+  animation: card-shake 400ms ease-in-out;
+}
+
+@keyframes card-shake {
+  0%, 100% { transform: translate(var(--card-x), var(--card-y)) rotate(0deg); }
+  15% { transform: translate(var(--card-x), var(--card-y)) rotate(-4deg); }
+  30% { transform: translate(var(--card-x), var(--card-y)) rotate(4deg); }
+  45% { transform: translate(var(--card-x), var(--card-y)) rotate(-3deg); }
+  60% { transform: translate(var(--card-x), var(--card-y)) rotate(3deg); }
+  75% { transform: translate(var(--card-x), var(--card-y)) rotate(-1deg); }
+  90% { transform: translate(var(--card-x), var(--card-y)) rotate(1deg); }
+}
+
+/* Haruhi boredom meter */
+.haruhi-boredom-bar {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(251, 247, 239, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(74, 52, 33, 0.14);
+  box-shadow: 0 4px 16px rgba(54, 38, 18, 0.08);
+}
+
+.boredom-label {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+.boredom-track {
+  width: 120px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(74, 52, 33, 0.1);
+  overflow: hidden;
+}
+
+.boredom-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ffb74d, #f44336);
+  transition: width 100ms linear;
+}

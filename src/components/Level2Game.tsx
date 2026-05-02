@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import './Level1Game.css'
+import './Level2Game.css'
 import { ProductionEffect } from './ProductionEffect'
 import type { LogEntry } from './LogPanel'
 import { LogPanel } from './LogPanel'
@@ -13,7 +13,7 @@ import {
   PRODUCTION_AUTO_REQUEUE_LEAD_MS,
   PRODUCTION_RING_SHRINK_MS,
 } from '../game/constants'
-import { createLevel1Config } from '../game/levelData'
+import { createLevel2Config } from '../game/levelData'
 import {
   consumeChildCard,
   getProductionAnchor,
@@ -32,42 +32,14 @@ import {
 } from '../game/stacking'
 import type { DragState, ProductionRun, TableCard } from '../game/types'
 
-interface Level1GameProps {
+interface Level2GameProps {
   onBackToMenu: () => void
 }
 
-const ALL_LOCATION_DEF_IDS = [
-  'location-literature',
-  'location-classroom-2',
-  'location-playground',
-  'location-classroom-1',
-  'location-cafeteria',
-  'location-library',
-  'location-gate',
-  'location-rooftop',
-  'location-music-room',
-  'location-infirmary',
-  'location-computer-room',
-  'location-gym',
-  'location-pool',
-  'location-shoe-locker',
-]
+const CHARACTER_DEF_IDS = ['haruhi', 'kyon', 'yuki', 'mikuru']
+const CONVENIENCE_STORE_DEF_ID = 'convenience-store'
 
-const SOS_MEMBER_DEF_IDS = ['haruhi', 'kyon', 'yuki', 'mikuru']
-
-/** 所有可通过地点探索产出的人物定义ID（去重检测用） */
-const ALL_CHARACTER_DEF_IDS = [
-  'yuki',
-  'mikuru',
-  'npc-taniguchi',
-  'npc-kunikida',
-  'npc-tsuruya',
-  'npc-ryouko',
-  'npc-shamisen',
-  'npc-computer-club',
-]
-
-export function Level1Game({ onBackToMenu }: Level1GameProps) {
+export function Level2Game({ onBackToMenu }: Level2GameProps) {
   const boardRef = useRef<HTMLDivElement | null>(null)
   const dragRef = useRef<DragState | null>(null)
   const suppressClickRef = useRef(false)
@@ -76,7 +48,19 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
   const logSequenceRef = useRef(0)
   const shakeTimeoutRef = useRef<number | null>(null)
 
-  const levelConfig = useMemo(() => createLevel1Config(), [])
+  const levelConfig = useMemo(() => createLevel2Config(), [])
+
+  const canProduceCheck = useCallback(
+    (rule: { outputDefinitionId?: string | null; outputPool?: string[] }, _parent: TableCard, _child: TableCard, allCards: TableCard[]) => {
+      // 电脑唯一性检测
+      if (rule.outputDefinitionId === 'computer') {
+        return !allCards.some((c) => c.definitionId === 'computer')
+      }
+      // 日元产出无限制
+      return true
+    },
+    [],
+  )
 
   const [cards, setCards] = useState<TableCard[]>(levelConfig.initialCards)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -84,72 +68,9 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [shakingCardId, setShakingCardId] = useState<string | null>(null)
-  const [haruhiUnlocked, setHaruhiUnlocked] = useState(false)
-  const [phase, setPhase] = useState<'intro' | 'spawner' | 'done'>('intro')
   const [haruhiBoredomMs, setHaruhiBoredomMs] = useState(0)
   const haruhiBoredomRef = useRef(0)
   const [ending, setEnding] = useState<'victory' | 'failure' | null>(null)
-  const spawnedLocationsRef = useRef<Set<string>>(new Set())
-  const locationTimersRef = useRef<Map<string, number>>(new Map())
-  /** 已产出的人物 definitionId（防止重复产出，人物消失后移除） */
-  const spawnedCharactersRef = useRef<Set<string>>(new Set())
-  const productionsRef = useRef<ProductionRun[]>([])
-
-  /** 同步 productionsRef */
-  useEffect(() => {
-    productionsRef.current = productions
-  }, [productions])
-
-  /** 检测是否已有地点产出人物的生产正在进行（防止同时产出多个人物） */
-  const hasCharacterProductionRunning = useCallback(() => {
-    return productionsRef.current.some((run) => {
-      // 地点产出人物的特征：consumeParent=true 且产出的是人物
-      if (!run.consumeParent) return false
-      if (run.outputDefinitionId && ALL_CHARACTER_DEF_IDS.includes(run.outputDefinitionId)) return true
-      if (run.outputPool && run.outputPool.some((id) => ALL_CHARACTER_DEF_IDS.includes(id))) return true
-      return false
-    })
-  }, [])
-
-  const canProduceCheck = useCallback(
-    (rule: { outputDefinitionId?: string | null; outputPool?: string[]; consumeParent?: boolean }, _parent: TableCard, _child: TableCard, _allCards: TableCard[]) => {
-      // SOS宣言唯一性检测
-      if (rule.outputDefinitionId === 'sos-declaration') {
-        return !spawnedCharactersRef.current.has('sos-declaration') && !_allCards.some((c) => c.definitionId === 'sos-declaration')
-      }
-
-      // 校园探索卡产出地点：检测是否还有未产出的地点和可产出的人物
-      // 注意：这里 parent 是 location-spawner（校园探索卡），child 是人物
-      if (rule.outputPool && rule.outputPool.some((id) => ALL_LOCATION_DEF_IDS.includes(id))) {
-        const availableLocations = rule.outputPool.filter(
-          (id) => !spawnedLocationsRef.current.has(id),
-        )
-        // 地点池空了就不探索了
-        if (availableLocations.length === 0) return false
-        // 检测是否还有可产出的人物（人物池空了就不再需要地点）
-        const hasAvailableCharacters = ALL_CHARACTER_DEF_IDS.some(
-          (id) => !spawnedCharactersRef.current.has(id),
-        )
-        return hasAvailableCharacters
-      }
-
-      // 地点产出人物：检测人物是否已产出（不能重复产出），且全局只能有一个此类生产
-      if (rule.consumeParent && rule.outputDefinitionId) {
-        if (spawnedCharactersRef.current.has(rule.outputDefinitionId)) return false
-        if (ALL_CHARACTER_DEF_IDS.includes(rule.outputDefinitionId) && hasCharacterProductionRunning()) return false
-      }
-      if (rule.consumeParent && rule.outputPool) {
-        const availablePool = rule.outputPool.filter(
-          (id) => !spawnedCharactersRef.current.has(id),
-        )
-        if (availablePool.length === 0) return false
-        if (rule.outputPool.some((id) => ALL_CHARACTER_DEF_IDS.includes(id)) && hasCharacterProductionRunning()) return false
-      }
-
-      return true
-    },
-    [hasCharacterProductionRunning],
-  )
 
   const addLog = useCallback((message: string) => {
     logSequenceRef.current += 1
@@ -173,9 +94,7 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
     }
   }, [])
 
-
-
-  // Haruhi boredom meter
+  // Haruhi boredom meter (same as level 1)
   useEffect(() => {
     if (ending) return
 
@@ -252,16 +171,11 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
     }
   }, [cards, productions, addLog, ending])
 
-  // Check SOS room victory condition: SOS room exists + all 4 members on table
+  // Victory condition: produce computer
   useEffect(() => {
-    const sosRoom = cards.find((c) => c.isSOSRoom)
-    if (!sosRoom || ending) return
-
-    // Check if all 4 SOS members are present on the table (anywhere, not just stacked)
-    const tableMemberIds = new Set(cards.map((c) => c.definitionId))
-    const allMembersPresent = SOS_MEMBER_DEF_IDS.every((id) => tableMemberIds.has(id))
-    if (allMembersPresent) {
-      addLog('SOS团全员集结！社团活动正式开始！')
+    const computerCard = cards.find((c) => c.definitionId === 'computer')
+    if (computerCard && !ending) {
+      addLog('SOS团获得了新电脑！')
       queueMicrotask(() => setEnding('victory'))
     }
   }, [cards, ending, addLog])
@@ -426,20 +340,7 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
           const parentCard = nextCards.find((c) => c.id === run.parentCardId)
           const parentName = parentCard?.customName ?? parentCard?.name ?? '???'
 
-          // 记录消耗前的人物卡，用于后续从产出池中移除
-          const childBefore = nextCards.find((c) => c.id === run.childCardId)
-          const parentBefore = nextCards.find((c) => c.id === run.parentCardId)
-
           nextCards = consumeChildCard(nextCards, run)
-
-          // 如果被消耗的是人物卡，从产出池中移除
-          if (run.consumeChild && childBefore && ALL_CHARACTER_DEF_IDS.includes(childBefore.definitionId)) {
-            spawnedCharactersRef.current.delete(childBefore.definitionId)
-          }
-          if (run.consumeParent && parentBefore && ALL_CHARACTER_DEF_IDS.includes(parentBefore.definitionId)) {
-            spawnedCharactersRef.current.delete(parentBefore.definitionId)
-          }
-
           const anchor = getProductionAnchor(nextCards, run)
 
           nextCards = spawnOutputCard(
@@ -450,8 +351,6 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
             boardWidth,
             boardHeight,
             instanceSequenceRef,
-            run.outputPool,
-            spawnedLocationsRef.current,
           )
 
           const childCard = currentCards.find((c) => c.id === run.childCardId)
@@ -459,107 +358,20 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
           let outputName = '新的卡牌'
           if (run.outputDefinitionId) {
             outputName = cardDefinitionMap.get(run.outputDefinitionId)?.name ?? '新的卡牌'
-          } else if (run.outputPool && run.outputPool.length > 0) {
-            outputName = '随机卡牌'
           }
 
-          if (run.consumeChild && run.consumeParent) {
-            addLog(
-              `「${run.event}」完成：${parentName} + ${childName} → 消耗${parentName}和${childName}，获得${outputName}`,
-            )
-          } else if (run.consumeChild) {
+          if (run.consumeChild) {
             addLog(
               `「${run.event}」完成：${parentName} + ${childName} → 消耗${childName}，获得${outputName}`,
-            )
-          } else if (run.consumeParent) {
-            addLog(
-              `「${run.event}」完成：${parentName} + ${childName} → 消耗${parentName}，获得${outputName}`,
             )
           } else {
             addLog(`「${run.event}」完成：${parentName} + ${childName} → 获得${outputName}`)
           }
 
-          if (run.outputDefinitionId === 'sos-declaration') {
-            addLog('SOS团正式成立！凉宫春日似乎有了什么想法……')
-            setHaruhiUnlocked(true)
-            // SOS宣言产出后直接给校园探索卡（唯一）
-            const spawnerExists = nextCards.some((c) => c.definitionId === 'location-spawner')
-            if (!spawnerExists) {
-              addLog('校园探索开始了！')
-              setPhase('spawner')
-              const spawnerDef = cardDefinitionMap.get('location-spawner')
-              if (spawnerDef) {
-                instanceSequenceRef.current += 1
-                const spawnerCard = {
-                  id: `location-spawner-${instanceSequenceRef.current}`,
-                  definitionId: spawnerDef.id,
-                  name: spawnerDef.name,
-                  kind: spawnerDef.kind,
-                  kindLabel: spawnerDef.kindLabel,
-                  note: spawnerDef.note,
-                  accent: spawnerDef.accent,
-                  x: 20,
-                  y: 80,
-                  parentCardId: null,
-                  childCardId: null,
-                  spawnedAtMs: Date.now(),
-                  spawnOriginX: 20,
-                  spawnOriginY: 80,
-                }
-                nextCards = [...nextCards, spawnerCard]
-                addLog('校园探索卡出现了！把人物拖进去探索校园吧！')
-              }
-            }
-          }
-
-          // Transform literature room to SOS room after spawning Yuki
-          if (run.outputDefinitionId === 'yuki') {
-            const literatureRoom = nextCards.find(
-              (c) => c.definitionId === 'location-literature' && c.id === run.parentCardId,
-            )
-            if (literatureRoom) {
-              nextCards = nextCards.map((c) =>
-                c.id === literatureRoom.id
-                  ? {
-                      ...c,
-                      isSOSRoom: true,
-                      customName: 'SOS活动室',
-                      customNote: 'SOS团的正式据点。全员集结之时，就是社团活动开始之日！',
-                      customAccent: 'sos-room',
-                    }
-                  : c,
-              )
-              addLog('文艺社活动室变成了SOS活动室！')
-            }
-          }
-
-          // Track spawned locations for deduplication
-          if (run.outputPool && run.outputPool.some((id) => ALL_LOCATION_DEF_IDS.includes(id))) {
-            const spawnedCard = nextCards[nextCards.length - 1]
-            if (spawnedCard && ALL_LOCATION_DEF_IDS.includes(spawnedCard.definitionId)) {
-              spawnedLocationsRef.current.add(spawnedCard.definitionId)
-              locationTimersRef.current.set(spawnedCard.id, Date.now())
-            }
-          }
-
-          // Track spawned characters for deduplication
-          if (run.outputDefinitionId && ALL_CHARACTER_DEF_IDS.includes(run.outputDefinitionId)) {
-            spawnedCharactersRef.current.add(run.outputDefinitionId)
-          }
-          if (run.outputPool) {
-            const spawnedChar = nextCards[nextCards.length - 1]
-            if (spawnedChar && ALL_CHARACTER_DEF_IDS.includes(spawnedChar.definitionId)) {
-              spawnedCharactersRef.current.add(spawnedChar.definitionId)
-            }
-          }
-
-          // If parent (location) was consumed, remove it from tracking
-          if (run.consumeParent) {
-            const consumedParent = currentCards.find((c) => c.id === run.parentCardId)
-            if (consumedParent) {
-              spawnedLocationsRef.current.delete(consumedParent.definitionId)
-              locationTimersRef.current.delete(consumedParent.id)
-            }
+          // After part-time job finishes, unmark character as working
+          if (parentCard?.definitionId === CONVENIENCE_STORE_DEF_ID && CHARACTER_DEF_IDS.includes(childCard?.definitionId ?? '')) {
+            nextCards = nextCards.map((c) => c.id === childCard?.id ? { ...c, isWorking: false } : c)
+            addLog(`${childCard?.customName ?? childCard?.name}打工结束了。`)
           }
         }
 
@@ -582,10 +394,10 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
     event: React.PointerEvent<HTMLButtonElement>,
     cardId: string,
   ) => {
-    const isHaruhi = levelConfig.immovableCardIds.includes(cardId)
-    if (isHaruhi && !haruhiUnlocked) {
+    const card = cards.find((c) => c.id === cardId)
+    if (card?.isWorking) {
       triggerShake(cardId)
-      addLog('凉宫春日还没有发言')
+      addLog(`${card.customName ?? card.name}正在打工，无法行动。`)
       return
     }
 
@@ -659,37 +471,28 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
       if (snapResult.parentCardId) {
         const parentCard = currentCards.find((c) => c.id === snapResult.parentCardId)
         if (parentCard) {
-          // Build test cards: for SOS room, attach to end of chain
-          let testCards = currentCards.map((c) => {
+          // Reject if target is working
+          if (parentCard.isWorking) {
+            const descendantIds = getDescendantIds(currentCards, dragState.cardId)
+            const deltaX = nextPosition.x - movingCard.x
+            const deltaY = nextPosition.y - movingCard.y
+            return currentCards.map((card) => {
+              if (card.id === dragState.cardId) return { ...card, x: nextPosition.x, y: nextPosition.y }
+              if (descendantIds.has(card.id))
+                return { ...card, x: card.x + deltaX, y: card.y + deltaY }
+              return card
+            })
+          }
+
+          const testCards = currentCards.map((c) => {
             if (c.id === movingCard.id) return { ...c, parentCardId: parentCard.id }
             if (c.id === parentCard.id) return { ...c, childCardId: movingCard.id }
             return c
           })
 
-          // For SOS room with existing child, simulate chain attachment
-          if (parentCard.isSOSRoom && parentCard.childCardId && parentCard.childCardId !== movingCard.id) {
-            let lastMemberId = parentCard.childCardId
-            let lastMember = currentCards.find((c) => c.id === lastMemberId)
-            while (lastMember?.childCardId) {
-              lastMemberId = lastMember.childCardId
-              lastMember = currentCards.find((c) => c.id === lastMemberId)
-            }
-            testCards = testCards.map((c) => {
-              if (c.id === movingCard.id) return { ...c, parentCardId: lastMemberId }
-              if (c.id === lastMemberId) return { ...c, childCardId: movingCard.id }
-              return c
-            })
-          }
-
           const matches = getProductionMatches(testCards, canProduceCheck)
           const isValidMatch = matches.some(
-            (m) => {
-              // For SOS room, check if the moving card is part of the match
-              if (parentCard.isSOSRoom) {
-                return m.parentCard.id === parentCard.id && m.childCard.id === movingCard.id
-              }
-              return m.parentCard.id === parentCard.id && m.childCard.id === movingCard.id
-            },
+            (m) => m.parentCard.id === parentCard.id && m.childCard.id === movingCard.id,
           )
 
           if (!isValidMatch) {
@@ -737,7 +540,7 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
   return (
     <main className="playground">
       <header className="game-header">
-        <h1 className="game-title">关卡1：团长的召唤</h1>
+        <h1 className="game-title">关卡2：电脑的获取</h1>
         <button type="button" className="back-btn" onClick={onBackToMenu}>
           返回
         </button>
@@ -745,10 +548,7 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
 
       <div className="level-hint">
         <p>
-          {phase === 'intro' && (haruhiUnlocked
-            ? '凉宫春日已觉醒！将她拖入SOS团成立宣言，获得SOS（思绪）'
-            : '提示：将阿虚拖入凉宫春日，触发SOS团成立！')}
-          {phase === 'spawner' && '校园探索开始了！把人物拖入校园探索卡，发现地点吧！'}
+          提示：把凉宫拖入电脑研究部获得把柄，或把角色拖入便利店打工赚日元。4个日元可在电子城换电脑。
         </p>
       </div>
 
@@ -775,8 +575,8 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
           const isSpawning =
             typeof card.spawnedAtMs === 'number' &&
             nowMs - card.spawnedAtMs < CARD_SPAWN_ANIMATION_MS
-          const isHaruhiLocked = levelConfig.immovableCardIds.includes(card.id) && !haruhiUnlocked
           const isShaking = shakingCardId === card.id
+          const isWorking = card.isWorking
           const displayName = card.customName ?? card.name
           const displayNote = card.customNote ?? card.note
           const displayAccent = card.customAccent ?? card.accent
@@ -785,7 +585,7 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
             <button
               key={card.id}
               type="button"
-              className={`card card-${displayAccent}${isDragging ? ' is-dragging' : ''}${isSpawning ? ' is-spawning' : ''}${isHaruhiLocked ? ' is-immovable' : ''}${isShaking ? ' is-shaking' : ''}`}
+              className={`card card-${displayAccent}${isDragging ? ' is-dragging' : ''}${isSpawning ? ' is-spawning' : ''}${isShaking ? ' is-shaking' : ''}${isWorking ? ' is-working' : ''}`}
               style={{
                 '--card-x': `${card.x}px`,
                 '--card-y': `${card.y}px`,
@@ -821,14 +621,9 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
             setDraggingId(null)
             setLogs([])
             setShakingCardId(null)
-            setHaruhiUnlocked(false)
-            setPhase('intro')
             setHaruhiBoredomMs(0)
             haruhiBoredomRef.current = 0
             setEnding(null)
-            spawnedLocationsRef.current.clear()
-            spawnedCharactersRef.current.clear()
-            locationTimersRef.current.clear()
             productionSequenceRef.current = 0
             instanceSequenceRef.current = 0
             logSequenceRef.current = 0
@@ -852,21 +647,17 @@ export function Level1Game({ onBackToMenu }: Level1GameProps) {
             setDraggingId(null)
             setLogs([])
             setShakingCardId(null)
-            setHaruhiUnlocked(false)
-            setPhase('intro')
             setHaruhiBoredomMs(0)
             haruhiBoredomRef.current = 0
             setEnding(null)
-            spawnedLocationsRef.current.clear()
-            locationTimersRef.current.clear()
             productionSequenceRef.current = 0
             instanceSequenceRef.current = 0
             logSequenceRef.current = 0
           }}
           customMessages={{
             victory: {
-              title: 'SOS团全员集结！',
-              body: '凉宫春日、阿虚、长门有希、朝比奈实玖瑠——SOS团全员到齐！\n\n「好，那就开始我们今天的社团活动吧！」\n\n凉宫春日露出了满意的笑容。',
+              title: 'SOS团获得了新电脑！',
+              body: '无论是通过非正常手段还是辛苦打工，SOS团终于拥有了自己的电脑！\n\n「好，那就开始我们今天的社团活动吧！」\n\n凉宫春日露出了满意的笑容。',
             },
           }}
         />
