@@ -3,9 +3,10 @@ import type { CSSProperties } from 'react'
 import './App.css'
 import { EventCardDetail } from './components/EventCardDetail'
 import { ProductionEffect } from './components/ProductionEffect'
-import { cardDefinitionMap, initialCards } from './game/cardData'
+import { cardDefinitionMap, initialCards, createTableCardFromDefinition } from './game/cardData'
 import {
   CARD_SPAWN_ANIMATION_MS,
+  ENERGY_REGEN_INTERVAL_MS,
   PRODUCTION_AUTO_REQUEUE_LEAD_MS,
   PRODUCTION_RING_SHRINK_MS,
 } from './game/constants'
@@ -40,12 +41,9 @@ function App() {
   const [selectedEventDefinitionId, setSelectedEventDefinitionId] = useState<string | null>(
     null,
   )
+  const [energyRegenStartMs, setEnergyRegenStartMs] = useState(() => Date.now())
 
   useEffect(() => {
-    if (productions.length === 0) {
-      return undefined
-    }
-
     const intervalId = window.setInterval(() => {
       setNowMs(Date.now())
     }, 16)
@@ -53,7 +51,7 @@ function App() {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [productions.length])
+  }, [])
 
   useEffect(() => {
     const matches = getProductionMatches(cards)
@@ -111,10 +109,6 @@ function App() {
   }, [cards])
 
   useEffect(() => {
-    if (productions.length === 0) {
-      return
-    }
-
     const finishedRuns = productions.filter(
       (run) => run.status === 'active' && nowMs - run.startedAtMs >= run.durationMs,
     )
@@ -137,10 +131,16 @@ function App() {
         .map((run) => run.id),
     )
 
+    const energyRegenElapsed = nowMs - energyRegenStartMs
+    const energyCycles = Math.floor(energyRegenElapsed / ENERGY_REGEN_INTERVAL_MS)
+    const nextEnergyRegenStartMs = energyRegenStartMs + energyCycles * ENERGY_REGEN_INTERVAL_MS
+    const shouldSpawnEnergy = energyCycles > 0
+
     if (
       finishedRuns.length === 0 &&
       requeueRuns.length === 0 &&
-      shrinkFinishedIds.size === 0
+      shrinkFinishedIds.size === 0 &&
+      !shouldSpawnEnergy
     ) {
       return
     }
@@ -217,10 +217,41 @@ function App() {
           )
         }
 
+        if (shouldSpawnEnergy) {
+          const energyDef = cardDefinitionMap.get('energy')
+          if (energyDef) {
+            instanceSequenceRef.current += 1
+            const centerX = boardWidth / 2
+            const centerY = boardHeight / 2
+            const angleSeed = instanceSequenceRef.current * 1.61803398875
+            const angle = (angleSeed % 1) * Math.PI * 2
+            const distance = 90 + ((instanceSequenceRef.current * 17) % 39)
+            const targetX = clamp(centerX - 118 / 2 + Math.cos(angle) * distance, 0, Math.max(boardWidth - 118, 0))
+            const targetY = clamp(centerY - 157 / 2 + Math.sin(angle) * distance, 0, Math.max(boardHeight - 157, 0))
+            nextCards = [
+              ...nextCards,
+              createTableCardFromDefinition(
+                energyDef,
+                `energy-${instanceSequenceRef.current}`,
+                targetX,
+                targetY,
+                {
+                  spawnedAtMs: nowMs,
+                  spawnOriginX: centerX - 118 / 2,
+                  spawnOriginY: centerY - 157 / 2,
+                },
+              ),
+            ]
+          }
+        }
+
         return nextCards
       })
+      if (shouldSpawnEnergy) {
+        setEnergyRegenStartMs(nextEnergyRegenStartMs)
+      }
     })
-  }, [cards, nowMs, productions])
+  }, [cards, nowMs, productions, energyRegenStartMs])
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
@@ -375,6 +406,15 @@ function App() {
 
   return (
     <main className="playground">
+      <div className="energy-regen-bar" aria-label="精力恢复进度">
+        <div
+          className="energy-regen-fill"
+          style={{
+            width: `${Math.min(((nowMs - energyRegenStartMs) / ENERGY_REGEN_INTERVAL_MS) * 100, 100)}%`,
+          }}
+        />
+        <span className="energy-regen-label">精力恢复中</span>
+      </div>
       <section ref={boardRef} className="table" aria-label="游戏桌面空地">
         <div className="table-noise" aria-hidden="true" />
 

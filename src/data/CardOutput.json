@@ -16,19 +16,19 @@
     "consumeChild": true
   },
   {
-    "id": "event-time-energy",
-    "parentDefinitionId": "event-card",
-    "childDefinitionId": "time",
-    "durationMs": 4000,
-    "outputDefinitionId": "energy",
-    "consumeChild": true
-  },
-  {
     "id": "event-money-empty",
     "parentDefinitionId": "event-card",
     "childDefinitionId": "money",
     "durationMs": 4000,
     "outputDefinitionId": null,
+    "consumeChild": true
+  },
+  {
+    "id": "poor-clue-energy-solid-clue",
+    "parentDefinitionId": "poor-clue",
+    "childDefinitionId": "energy",
+    "durationMs": 4000,
+    "outputDefinitionId": "solid-clue",
     "consumeChild": true
   }
 ]

@@ -8,14 +8,6 @@
     "accent": "resource"
   },
   {
-    "id": "time",
-    "name": "时间",
-    "kind": "resource",
-    "kindLabel": "资源",
-    "note": "会流逝，也能被交换。",
-    "accent": "time"
-  },
-  {
     "id": "poor-clue",
     "name": "贫瘠线索",
     "kind": "clue",
@@ -47,5 +39,13 @@
     "kindLabel": "资源",
     "note": "可流动的日常回报。",
     "accent": "money"
+  },
+  {
+    "id": "solid-clue",
+    "name": "缜密的线索",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "碎片拼凑后，轮廓开始清晰。",
+    "accent": "solid-clue"
   }
 ]

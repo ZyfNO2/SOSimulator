@@ -18,11 +18,6 @@ export const initialTableCardKinds: InitialTableCardRecord[] = [
     y: 92,
   },
   {
-    definitionId: 'time',
-    x: 220,
-    y: 82,
-  },
-  {
     definitionId: 'poor-clue',
     x: 286,
     y: 146,

@@ -4,6 +4,33 @@
   padding: 0;
 }
 
+.energy-regen-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: 6px;
+  background: rgba(60, 42, 24, 0.18);
+  overflow: hidden;
+}
+
+.energy-regen-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e7cb74, #f2e1b8);
+  transition: width 0.1s linear;
+}
+
+.energy-regen-label {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: rgba(60, 42, 24, 0.55);
+  pointer-events: none;
+}
+
 .playground-hud {
   position: absolute;
   top: 24px;
@@ -164,14 +191,14 @@
   background: rgba(86, 101, 74, 0.16);
 }
 
-.card-time {
+.card-solid-clue {
   background:
-    linear-gradient(180deg, rgba(243, 247, 249, 0.98), rgba(196, 213, 220, 0.92)),
-    #c1d4df;
+    linear-gradient(180deg, rgba(245, 242, 235, 0.98), rgba(210, 200, 185, 0.92)),
+    #c4b8a3;
 }
 
-.card-time .card-kind-band {
-  background: rgba(57, 79, 93, 0.16);
+.card-solid-clue .card-kind-band {
+  background: rgba(110, 95, 75, 0.18);
 }
 
 .card-routine {
