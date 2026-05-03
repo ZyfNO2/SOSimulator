@@ -57,6 +57,9 @@ const CHAPTER4_INTEL_DEFINITION_IDS = [
   'chapter4-intel-loop',
   'chapter4-intel-world',
 ] as const
+const CHAPTER1_FOUNDATION_RULE_ID = 'sos-foundation-kyon-haruhi'
+const CHAPTER1_FOUNDATION_AUDIO_SRC = '/audio/1-凉宫.mp3'
+const CHAPTER1_FOUNDATION_AUDIO_MAX_MS = 20000
 
 function isWeatherDefinitionId(definitionId: string) {
   return WEATHER_DEFINITION_IDS.includes(
@@ -162,6 +165,29 @@ function lockCharacterCards(currentCards: TableCard[], cardIds: string[]) {
         }
       : card,
   )
+}
+
+function playAudioEffect(src: string, maxPlayMs?: number) {
+  const audio = new Audio(src)
+
+  if (typeof maxPlayMs === 'number' && maxPlayMs > 0) {
+    const stopTimerId = window.setTimeout(() => {
+      audio.pause()
+      audio.currentTime = 0
+    }, maxPlayMs)
+
+    audio.addEventListener(
+      'ended',
+      () => {
+        window.clearTimeout(stopTimerId)
+      },
+      { once: true },
+    )
+  }
+
+  void audio.play().catch(() => {
+    // Ignore autoplay policy failures; gameplay should continue.
+  })
 }
 
 type UseGameRuntimeArgs = {
@@ -443,7 +469,14 @@ export function useGameRuntime({
         return nextCards
       }
 
-      nextCards = removeCardPreservingChain(nextCards, capturedRegion.id)
+      nextCards = nextCards.map((card) =>
+        card.id === capturedRegion.id
+          ? {
+              ...card,
+              isInteractionLocked: true,
+            }
+          : card,
+      )
       instanceSequenceRef.current += 1
       nextCards = [
         ...nextCards,
@@ -1092,6 +1125,9 @@ export function useGameRuntime({
             inputs: run.inputCardIds,
             outputs: run.outputDefinitionIds,
           })
+          if (run.ruleId === CHAPTER1_FOUNDATION_RULE_ID) {
+            playAudioEffect(CHAPTER1_FOUNDATION_AUDIO_SRC, CHAPTER1_FOUNDATION_AUDIO_MAX_MS)
+          }
           const anchor = getProductionAnchor(nextCards, run)
           const isChapter4DialogueRun =
             currentLevelId === 'level-4' && run.ruleId.startsWith('chapter4-kyon-')
@@ -1222,6 +1258,22 @@ export function useGameRuntime({
             }
 
             nextCards = lockCharacterCards(nextCards, run.inputCardIds)
+          }
+
+          if (
+            run.ruleId === 'chapter3-koizumi-closed-space-resolve' ||
+            run.ruleId === 'chapter3-nagato-closed-space-carry'
+          ) {
+            const swallowedRegionCard = nextCards.find(
+              (card) =>
+                CHAPTER3_REGION_DEFINITION_IDS.includes(
+                  card.definitionId as (typeof CHAPTER3_REGION_DEFINITION_IDS)[number],
+                ) && card.isInteractionLocked,
+            )
+
+            if (swallowedRegionCard) {
+              nextCards = removeCardPreservingChain(nextCards, swallowedRegionCard.id)
+            }
           }
         }
 

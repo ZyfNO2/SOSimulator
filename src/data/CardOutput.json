@@ -8,7 +8,6 @@
     "event": "团长点名阿虚签字背锅，SOS社团当场成立并全校开图。",
     "outputDefinitionIds": [
       "sos-manifesto",
-      "explore-campus",
       "lit-club-room",
       "class-2-room",
       "kitachu-gate",
@@ -273,7 +272,7 @@
     "inputDefinitionIds": ["koizumi", "closed-space-on-area"],
     "requiresMissingDefinitionIds": ["esper-resolve"],
     "durationMs": 3000,
-    "event": "古泉线路成功压制闭锁空间，灾情被按回阈值。",
+    "event": "古泉线路成功压制闭锁空间，被吞区域开始复位。",
     "outputDefinitionIds": ["esper-resolve", "area-restored"],
     "consumeInputIndexes": [false, true]
   },
@@ -283,8 +282,8 @@
     "inputDefinitionIds": ["nagato", "closed-space-on-area"],
     "requiresMissingDefinitionIds": ["alien-carry"],
     "durationMs": 3000,
-    "event": "长门直接接管异常，吞噬地区被强行捞回。",
-    "outputDefinitionIds": ["alien-carry", "swallowed-area-fixed"],
+    "event": "长门直接接管异常，被吞区域被强行捞回并复位。",
+    "outputDefinitionIds": ["alien-carry", "area-restored"],
     "consumeInputIndexes": [false, true]
   },
   {

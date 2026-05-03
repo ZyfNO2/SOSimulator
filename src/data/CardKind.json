@@ -667,7 +667,7 @@
   },
   {
     "id": "area-restored",
-    "name": "地区（已修复）",
+    "name": "地区（修复）",
     "kind": "state",
     "kindLabel": "处置",
     "note": "地区结构回稳，崩坏链被打断。",
