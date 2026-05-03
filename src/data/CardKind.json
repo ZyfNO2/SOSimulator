@@ -477,6 +477,87 @@
     "accent": "clue"
   },
   {
+    "id": "wish-computer",
+    "name": "愿望：电脑",
+    "kind": "state",
+    "kindLabel": "愿望",
+    "note": "先搞到一台能用的电脑。",
+    "details": "社团活动想往下推进，最现实的第一步就是弄到电脑。",
+    "accent": "event"
+  },
+  {
+    "id": "wish-fun",
+    "name": "愿望：趣味",
+    "kind": "state",
+    "kindLabel": "愿望",
+    "note": "活动必须有趣，越离谱越好。",
+    "details": "没有趣味就没有招新，没有招新就没有故事，春日不会接受平淡选项。",
+    "accent": "event"
+  },
+  {
+    "id": "path-parttime",
+    "name": "路径：打工",
+    "kind": "state",
+    "kindLabel": "路径",
+    "note": "最正经也最慢的路线。",
+    "details": "按阿虚的思路，先去打工攒预算，规规矩矩地弄到社团设备。",
+    "accent": "routine"
+  },
+  {
+    "id": "path-evil",
+    "name": "路径：邪恶",
+    "kind": "state",
+    "kindLabel": "路径",
+    "note": "效率高，但做法不太光明。",
+    "details": "按春日的风格，目标明确：绕开流程，直奔结果。",
+    "accent": "event"
+  },
+  {
+    "id": "chief-leverage",
+    "name": "部长的把柄",
+    "kind": "clue",
+    "kindLabel": "把柄",
+    "note": "一旦拿到，谈判就会简单很多。",
+    "details": "这是一张只对特定对象生效的筹码，用对了能直接换来资源。",
+    "accent": "clue"
+  },
+  {
+    "id": "chief",
+    "name": "部长",
+    "kind": "character",
+    "kindLabel": "角色",
+    "note": "掌握设备分配权的人。",
+    "details": "平时不太会被卷进SOS团，但在关键节点上绕不开他。",
+    "accent": "character"
+  },
+  {
+    "id": "computer",
+    "name": "电脑",
+    "kind": "clue",
+    "kindLabel": "设备",
+    "note": "终于有了社团的核心工具。",
+    "details": "无论过程体不体面，结果是社团终于拿到一台电脑。",
+    "accent": "money"
+  },
+  {
+    "id": "sos-website",
+    "name": "SOS网站",
+    "kind": "event",
+    "kindLabel": "成果",
+    "note": "社团对外公开的第一块招牌。",
+    "details": "有了网站，SOS团终于能把“异常事务”包装成公开活动。",
+    "accent": "event"
+  },
+  {
+    "id": "bunny-flyer-plan",
+    "name": "扮成兔女郎分发传单吧",
+    "kind": "event",
+    "kindLabel": "计划",
+    "note": "为了趣味和曝光，方案已经很明确了。",
+    "details": "网站只是入口，真正能引爆关注的仍是春日式宣传方案。",
+    "accent": "event"
+  },
+  {
     "id": "ending-sos",
     "name": "SOS！！！",
     "kind": "ending",

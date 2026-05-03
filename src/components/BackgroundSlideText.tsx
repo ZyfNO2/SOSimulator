@@ -53,7 +53,37 @@ function createInitialSlotState(): SlotState {
   }
 }
 
-function getStoryTexts(storyState: StoryState) {
+function isSosQuoteMode(cards: TableCard[]) {
+  const definitionIdSet = new Set(cards.map((card) => card.definitionId))
+  const hasSosCoreMembers =
+    definitionIdSet.has('kyon') && definitionIdSet.has('haruhi')
+  const isSecondChapterStart = definitionIdSet.has('sos-activity-room-empty')
+
+  return hasSosCoreMembers && !isSecondChapterStart
+}
+
+function getSosQuoteTexts() {
+  return [
+    '我对普通的人类没有兴趣。',
+    '你们当中要是有外星人，',
+    '未来人，',
+    '异世界人，',
+    '超能力者的话，',
+    '就尽管来找我吧。',
+    '普通的人类',
+    '外星人',
+    '未来人',
+    '异世界人',
+    '超能力者',
+    '凉宫春日',
+  ]
+}
+
+function getStoryTexts(storyState: StoryState, cards: TableCard[]) {
+  if (isSosQuoteMode(cards)) {
+    return getSosQuoteTexts()
+  }
+
   const chapterTexts: Record<StoryState['chapter'], string[]> = {
     umbrella: ['只是失物。', '她停下来看了第二眼。'],
     testimony: ['传闻开始自己互相证明。', '每个人都记得一点点。'],
@@ -93,7 +123,7 @@ function getActiveBackgroundConfig(cards: TableCard[], storyState: StoryState) {
     )
 
   return {
-    activeTexts: [...activeTexts, ...getStoryTexts(storyState)],
+    activeTexts: [...activeTexts, ...getStoryTexts(storyState, cards)],
     maxVisibleLines:
       activeMaxValues.length > 0 ? Math.min(...activeMaxValues, SLOT_COUNT) : SLOT_COUNT,
   }

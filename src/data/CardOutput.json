@@ -84,6 +84,92 @@
     "allowUnorderedTail": true
   },
   {
+    "id": "chapter2-empty-room-to-wishes",
+    "inputDefinitionIds": ["sos-activity-room-empty"],
+    "requiresMissingDefinitionIds": [
+      "wish-computer",
+      "wish-fun",
+      "path-parttime",
+      "path-evil",
+      "computer",
+      "sos-website",
+      "bunny-flyer-plan",
+      "ending-sos"
+    ],
+    "durationMs": 2200,
+    "event": "空空如也的活动室先给出两个核心愿望：设备和趣味。",
+    "outputDefinitionIds": ["wish-computer", "wish-fun"],
+    "consumeInputIndexes": [false]
+  },
+  {
+    "id": "chapter2-wish-computer-kyon-parttime",
+    "inputDefinitionIds": ["wish-computer", "kyon"],
+    "durationMs": 2200,
+    "event": "阿虚给出正经方案：先走打工路线。",
+    "outputDefinitionIds": ["path-parttime"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter2-wish-computer-haruhi-evil",
+    "inputDefinitionIds": ["wish-computer", "haruhi"],
+    "durationMs": 2200,
+    "event": "春日选择效率优先：走邪恶路线。",
+    "outputDefinitionIds": ["path-evil"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter2-evil-haruhi-chief-setup",
+    "inputDefinitionIds": ["path-evil", "haruhi"],
+    "durationMs": 2400,
+    "event": "邪恶路线推进后，部长与把柄同时浮出水面。",
+    "outputDefinitionIds": ["chief-leverage", "chief"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter2-chief-leverage-chief-computer",
+    "inputDefinitionIds": ["chief-leverage", "chief"],
+    "durationMs": 2400,
+    "event": "把柄与对象完成结算，电脑到手。",
+    "outputDefinitionIds": ["computer"],
+    "consumeInputIndexes": [true, true]
+  },
+  {
+    "id": "chapter2-parttime-all-members-computer",
+    "inputDefinitionIds": ["path-parttime", "kyon", "haruhi", "nagato", "asahina"],
+    "requiresMissingDefinitionIds": ["computer"],
+    "durationMs": 3600,
+    "event": "打工路线在四位社员协作下落地，最终凑出社团电脑。",
+    "outputDefinitionIds": ["computer"],
+    "consumeInputIndexes": [true, false, false, false, false],
+    "allowUnorderedTail": true
+  },
+  {
+    "id": "chapter2-computer-kyon-website",
+    "inputDefinitionIds": ["computer", "kyon"],
+    "durationMs": 2400,
+    "event": "阿虚把电脑利用起来，SOS网站上线。",
+    "outputDefinitionIds": ["sos-website"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter2-wish-fun-website-bunny-plan",
+    "inputDefinitionIds": ["wish-fun", "sos-website"],
+    "durationMs": 2400,
+    "event": "趣味愿望与网站结合，兔女郎传单计划出炉。",
+    "outputDefinitionIds": ["bunny-flyer-plan"],
+    "consumeInputIndexes": [true, true]
+  },
+  {
+    "id": "chapter2-bunny-plan-haruhi-asahina-clear",
+    "inputDefinitionIds": ["bunny-flyer-plan", "haruhi", "asahina"],
+    "requiresMissingDefinitionIds": ["ending-sos"],
+    "durationMs": 6800,
+    "event": "兔女郎传单计划执行完成，SOS团本章达成通关。",
+    "outputDefinitionIds": ["ending-sos"],
+    "consumeInputIndexes": [true, false, false],
+    "allowUnorderedTail": true
+  },
+  {
     "id": "shop-energy-money",
     "inputDefinitionIds": ["shop", "energy"],
     "durationMs": 3200,
