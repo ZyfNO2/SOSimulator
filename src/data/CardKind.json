@@ -313,5 +313,176 @@
     "note": "宇宙级的麻烦制造者。",
     "details": "凉宫春日，一个连宇宙都会因为她的无聊而颤抖的少女。她不知道自己的力量，却总能把最普通的日常变成最离奇的冒险。对于她来说，世界如果不够有趣，那就干脆重写一遍。",
     "accent": "character"
+  },
+  {
+    "id": "sos-manifesto",
+    "name": "SOS社团成立宣言",
+    "kind": "event",
+    "kindLabel": "事件",
+    "note": "把无聊日常直接宣战。",
+    "details": "这不是一张正式文件，而是一句被春日说出口后就会自动生效的命令。它宣布了一个以异常为目标的新社团，也把接下来所有探索都从课后消遣变成了正当活动。",
+    "accent": "event"
+  },
+  {
+    "id": "explore-campus",
+    "name": "探索校园",
+    "kind": "event",
+    "kindLabel": "行动",
+    "note": "开始在校园里逐点排查。",
+    "details": "拿着社团名义四处打听，走廊、教室、旧社团活动室都要跑一遍。只要有角色参与，探索就会从普通闲逛变成一次有目标的调查。",
+    "accent": "event"
+  },
+  {
+    "id": "lit-club-room",
+    "name": "文艺社活动室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "安静却最容易遇见关键人物。",
+    "details": "书架、旧桌椅和泛黄社刊堆在一起，像是被时间跳过的一角。也是最可能碰见长门的位置。",
+    "accent": "time"
+  },
+  {
+    "id": "class-2-room",
+    "name": "二年级教室",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "最日常的地点，藏着最意外的交集。",
+    "details": "上课铃和课桌之间没有任何神秘感，但正因为如此，朝比奈的出现会显得格外突兀又合理。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-gate",
+    "name": "北高校门",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "每天进出的人最多，线索却最散。",
+    "details": "放学后人流最杂，消息很多但真假难分。探索后只会留下一层被翻过的痕迹。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-courtyard",
+    "name": "北高校庭",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "看似开阔，实际上很难锁定目标。",
+    "details": "操场边和中庭长椅都能听到传闻，却很少有确定答案。探索一次后就失去继续挖掘价值。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-hallway",
+    "name": "北高走廊",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "消息流动最快，也最容易失真。",
+    "details": "课间几分钟足够把一条消息传遍整层楼，也足够把它改成另一个版本。探索后会迅速冷却。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-rooftop",
+    "name": "北高天台",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "风很大，答案通常不会停太久。",
+    "details": "天台适合观察，不适合久留。探索一次后基本就只剩下被风吹散的线头。",
+    "accent": "time"
+  },
+  {
+    "id": "sos-activity-room",
+    "name": "SOS活动部",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "文艺社活动室正式改组。",
+    "details": "找到长门后，这里不再只是文艺社据点，而变成了SOS社的常驻活动场地。",
+    "accent": "event"
+  },
+  {
+    "id": "sos-activity-room-empty",
+    "name": "空空如也的SOS社团",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "社团刚成立，桌上还没有任何成果。",
+    "details": "黑板还留着旧社团的字迹，活动室里只摆着最基础的桌椅。四位社员已经到齐，但真正的社团故事才刚要开始。",
+    "accent": "time"
+  },
+  {
+    "id": "class-2-room-explored",
+    "name": "二年级教室（已探索）",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "线索已清空，暂时没有新发现。",
+    "details": "这处地点已经完成排查，不再提供新的探索结果。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-gate-explored",
+    "name": "北高校门（已探索）",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "探索完成，信息价值归零。",
+    "details": "这里只剩下确认过的旧信息，短期内不会再产出新线索。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-courtyard-explored",
+    "name": "北高校庭（已探索）",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "可探索内容已经用尽。",
+    "details": "这处地点已被排查，不再响应后续探索行为。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-hallway-explored",
+    "name": "北高走廊（已探索）",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "消息源枯竭，暂不刷新。",
+    "details": "走廊已探索完毕，继续投入人物也不会得到新结果。",
+    "accent": "time"
+  },
+  {
+    "id": "kitachu-rooftop-explored",
+    "name": "北高天台（已探索）",
+    "kind": "location",
+    "kindLabel": "地点",
+    "note": "当前阶段无更多可用线索。",
+    "details": "天台探索完成后进入冷却态，不可重复产出。",
+    "accent": "time"
+  },
+  {
+    "id": "asahina",
+    "name": "朝比奈",
+    "kind": "character",
+    "kindLabel": "角色",
+    "note": "出场总带着轻微的慌张感。",
+    "details": "在二年级教室线索汇合时最容易遇见她。她看起来总像刚好被卷进来，却常常掌握关键细节。",
+    "accent": "character"
+  },
+  {
+    "id": "nagato",
+    "name": "长门",
+    "kind": "character",
+    "kindLabel": "角色",
+    "note": "安静出现，信息密度却最高。",
+    "details": "文艺社活动室是最稳定能遇见她的地方。她的话不多，但每一句都足够改变调查方向。",
+    "accent": "character"
+  },
+  {
+    "id": "campus-character-clue",
+    "name": "人物线索",
+    "kind": "clue",
+    "kindLabel": "线索",
+    "note": "校园里的人物关系开始浮出水面。",
+    "details": "探索校园并带上任意人物后，会逐步积累关于关键成员的接触线索。",
+    "accent": "clue"
+  },
+  {
+    "id": "ending-sos",
+    "name": "SOS！！！",
+    "kind": "ending",
+    "kindLabel": "通关",
+    "note": "SOS社全员到齐，通关达成。",
+    "details": "当SOS活动部同时挂上阿虚、凉宫、长门、朝比奈，社团正式成型。读条结束后，属于这一章的终局宣言会在桌面中央震动出现。",
+    "accent": "event"
   }
 ]

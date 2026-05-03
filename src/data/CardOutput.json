@@ -1,5 +1,89 @@
 [
   {
+    "id": "sos-foundation-kyon-haruhi",
+    "inputDefinitionIds": ["haruhi", "kyon"],
+    "requiresMissingDefinitionIds": ["sos-manifesto"],
+    "durationMs": 2600,
+    "event": "阿虚和春日把口号落地，SOS社正式成立并开始校园排查。",
+    "outputDefinitionIds": [
+      "sos-manifesto",
+      "explore-campus",
+      "lit-club-room",
+      "class-2-room",
+      "kitachu-gate",
+      "kitachu-courtyard",
+      "kitachu-hallway",
+      "kitachu-rooftop"
+    ],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "explore-campus-any-character",
+    "inputDefinitionIds": ["explore-campus", "__any-character__"],
+    "durationMs": 2200,
+    "event": "任意角色参与校园探索，人物线索逐步浮现。",
+    "outputDefinitionIds": ["campus-character-clue"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "lit-club-room-any-character-nagato",
+    "inputDefinitionIds": ["lit-club-room", "__any-character__"],
+    "durationMs": 2400,
+    "event": "文艺社活动室的探索锁定长门，场地改组为SOS活动部。",
+    "outputDefinitionIds": ["nagato", "sos-activity-room"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "class2-any-character-asahina",
+    "inputDefinitionIds": ["class-2-room", "__any-character__"],
+    "durationMs": 2400,
+    "event": "二年级教室探索到关键人物，朝比奈加入视野。",
+    "outputDefinitionIds": ["asahina", "class-2-room-explored"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "gate-any-character-explored",
+    "inputDefinitionIds": ["kitachu-gate", "__any-character__"],
+    "durationMs": 2200,
+    "event": "校门区域完成排查，地点进入已探索状态。",
+    "outputDefinitionIds": ["campus-character-clue", "kitachu-gate-explored"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "courtyard-any-character-explored",
+    "inputDefinitionIds": ["kitachu-courtyard", "__any-character__"],
+    "durationMs": 2200,
+    "event": "中庭区域完成排查，地点进入已探索状态。",
+    "outputDefinitionIds": ["campus-character-clue", "kitachu-courtyard-explored"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "hallway-any-character-explored",
+    "inputDefinitionIds": ["kitachu-hallway", "__any-character__"],
+    "durationMs": 2200,
+    "event": "走廊区域完成排查，地点进入已探索状态。",
+    "outputDefinitionIds": ["campus-character-clue", "kitachu-hallway-explored"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "rooftop-any-character-explored",
+    "inputDefinitionIds": ["kitachu-rooftop", "__any-character__"],
+    "durationMs": 2200,
+    "event": "天台区域完成排查，地点进入已探索状态。",
+    "outputDefinitionIds": ["campus-character-clue", "kitachu-rooftop-explored"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "sos-activity-room-full-members-clear",
+    "inputDefinitionIds": ["sos-activity-room", "kyon", "haruhi", "nagato", "asahina"],
+    "requiresMissingDefinitionIds": ["ending-sos"],
+    "durationMs": 6800,
+    "event": "SOS活动部全员就位，社团完成最终组建，宣言在桌面中央爆发。",
+    "outputDefinitionIds": ["ending-sos"],
+    "consumeInputIndexes": [true, false, false, false, false],
+    "allowUnorderedTail": true
+  },
+  {
     "id": "shop-energy-money",
     "inputDefinitionIds": ["shop", "energy"],
     "durationMs": 3200,

@@ -59,6 +59,7 @@ export type InitialTableCardRecord = {
 export type CardOutputRule = {
   id: string
   inputDefinitionIds: string[]
+  requiresMissingDefinitionIds?: string[]
   durationMs: number
   event: string
   outputDefinitionIds: string[]

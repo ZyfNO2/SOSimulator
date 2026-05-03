@@ -12,6 +12,7 @@ type RawCardOutputRuleRecord = {
   durationMs: number
   event?: string
   inputDefinitionIds?: string[]
+  requiresMissingDefinitionIds?: string[]
   outputDefinitionIds?: string[]
   consumeInputIndexes?: boolean[]
   allowUnorderedTail?: boolean
@@ -93,6 +94,7 @@ function normalizeCardOutputRule(rule: RawCardOutputRuleRecord): CardOutputRule 
   return {
     id: rule.id,
     inputDefinitionIds,
+    requiresMissingDefinitionIds: rule.requiresMissingDefinitionIds,
     durationMs: rule.durationMs,
     event: rule.event ?? '',
     outputDefinitionIds: getRuleOutputDefinitionIds(rule),

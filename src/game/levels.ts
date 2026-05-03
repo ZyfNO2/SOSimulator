@@ -48,21 +48,27 @@ export const mainLevel: LevelConfig = {
 
 export const level1: LevelConfig = {
   id: 'level-1',
-  name: 'SOS团的日常',
-  description: '阿虚与春日的奇妙组合。',
+  name: '成立SOS社吧',
+  description: '从阿虚和春日开始，把校园地点一口气摸透。',
   isLocked: false,
   initialCards: makeInitialCards([
-    { definitionId: 'kyon', x: 300, y: 200 },
-    { definitionId: 'haruhi', x: 500, y: 200 },
+    { definitionId: 'kyon', x: 360, y: 220 },
+    { definitionId: 'haruhi', x: 540, y: 220 },
   ]),
 }
 
 export const level2: LevelConfig = {
   id: 'level-2',
-  name: '未解锁的篇章',
-  description: '更多故事，即将展开...',
+  name: 'SOS社团再启动',
+  description: '四位社员已就位，先从空空如也的活动室起步。',
   isLocked: false,
-  initialCards: makeInitialCards([]),
+  initialCards: makeInitialCards([
+    { definitionId: 'kyon', x: 260, y: 220 },
+    { definitionId: 'haruhi', x: 420, y: 220 },
+    { definitionId: 'nagato', x: 580, y: 220 },
+    { definitionId: 'asahina', x: 740, y: 220 },
+    { definitionId: 'sos-activity-room-empty', x: 500, y: 72 },
+  ]),
 }
 
 export const allLevels: LevelConfig[] = [mainLevel, level1, level2]

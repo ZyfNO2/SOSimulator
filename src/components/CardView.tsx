@@ -36,6 +36,8 @@ export function CardView({
   const isMother = card.isMother === true
   const hasCountdown =
     typeof card.refillStartedAtMs === 'number' && typeof card.refillDurationMs === 'number'
+  const isExploredLocation = card.definitionId.endsWith('-explored')
+  const isSosClearCard = card.definitionId === 'ending-sos'
 
   return (
     <button
@@ -47,6 +49,8 @@ export function CardView({
         isWaitingToSpawn ? ' is-waiting-spawn' : ''
       }${isMother ? ' is-mother-card' : ''}${
         hasCountdown ? ' has-countdown' : ''
+      }${isExploredLocation ? ' is-explored-location' : ''
+      }${isSosClearCard ? ' is-sos-clear' : ''
       }`}
       style={
         {

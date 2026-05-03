@@ -13,12 +13,34 @@ import type {
   TableCard,
 } from './types'
 
+const ANY_CHARACTER_INPUT = '__any-character__'
+const SOS_FOUNDATION_RULE_ID = 'sos-foundation-kyon-haruhi'
+const SOS_FOUNDATION_LAYOUT: Record<string, { x: number; y: number }> = {
+  'sos-manifesto': { x: 520, y: 72 },
+  'explore-campus': { x: 520, y: 270 },
+  'lit-club-room': { x: 220, y: 72 },
+  'class-2-room': { x: 370, y: 72 },
+  'kitachu-gate': { x: 670, y: 72 },
+  'kitachu-courtyard': { x: 820, y: 72 },
+  'kitachu-hallway': { x: 970, y: 72 },
+  'kitachu-rooftop': { x: 1120, y: 72 },
+}
+
 export function getProductionMatches(cards: TableCard[]) {
   const matches: ProductionMatch[] = []
   const matchKeys = new Set<string>()
 
   for (const startCard of cards) {
     for (const rule of cardOutputRules) {
+      if (
+        rule.requiresMissingDefinitionIds &&
+        rule.requiresMissingDefinitionIds.some((definitionId) =>
+          cards.some((card) => card.definitionId === definitionId),
+        )
+      ) {
+        continue
+      }
+
       const matchedInputs = getMatchedInputCards(cards, startCard.id, rule)
 
       if (!matchedInputs) {
@@ -137,7 +159,16 @@ function getMatchedInputCardsInOrder(
 
     const card = cards.find((candidate) => candidate.id === currentId)
 
-    if (!card || card.definitionId !== definitionId) {
+    if (!card) {
+      return null
+    }
+
+    const isMatch =
+      definitionId === ANY_CHARACTER_INPUT
+        ? card.kind === 'character'
+        : card.definitionId === definitionId
+
+    if (!isMatch) {
       return null
     }
 
@@ -189,6 +220,9 @@ export function spawnOutputCards(
 
     instanceSequenceRef.current += 1
 
+    const fixedLayoutPosition =
+      run.ruleId === SOS_FOUNDATION_RULE_ID ? SOS_FOUNDATION_LAYOUT[definitionId] : undefined
+
     const angleSeed = (instanceSequenceRef.current + index) * 1.61803398875
     const angle = (angleSeed % 1) * Math.PI * 2
     const distance =
@@ -197,12 +231,16 @@ export function spawnOutputCards(
         (CARD_SPAWN_DISTANCE_MAX - CARD_SPAWN_DISTANCE_MIN + 1))
 
     const targetX = clamp(
-      centerX - CARD_WIDTH / 2 + Math.cos(angle) * distance,
+      fixedLayoutPosition
+        ? fixedLayoutPosition.x
+        : centerX - CARD_WIDTH / 2 + Math.cos(angle) * distance,
       0,
       Math.max(boardWidth - CARD_WIDTH, 0),
     )
     const targetY = clamp(
-      centerY - CARD_HEIGHT / 2 + Math.sin(angle) * distance,
+      fixedLayoutPosition
+        ? fixedLayoutPosition.y
+        : centerY - CARD_HEIGHT / 2 + Math.sin(angle) * distance,
       0,
       Math.max(boardHeight - CARD_HEIGHT, 0),
     )
