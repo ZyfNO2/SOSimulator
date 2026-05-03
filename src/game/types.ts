@@ -17,6 +17,7 @@ export type TableCard = {
   decayAtMs?: number | null
   decayOutputDefinitionIds?: string[]
   isMother?: boolean
+  isInteractionLocked?: boolean
   refillStartedAtMs?: number | null
   refillDurationMs?: number | null
 }
@@ -59,6 +60,7 @@ export type InitialTableCardRecord = {
 export type CardOutputRule = {
   id: string
   inputDefinitionIds: string[]
+  allowedLevelIds?: ('main' | 'level-1' | 'level-2' | 'level-3' | 'level-4')[]
   requiresMissingDefinitionIds?: string[]
   durationMs: number
   event: string

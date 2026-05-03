@@ -326,6 +326,12 @@
     linear-gradient(180deg, rgba(10, 10, 10, 0.12), rgba(10, 10, 10, 0.28));
 }
 
+.card.is-interaction-locked {
+  filter: grayscale(0.96) saturate(0.42) brightness(0.88);
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
 .card.is-sos-clear {
   width: 176px;
   min-height: 242px;

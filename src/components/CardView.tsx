@@ -37,7 +37,8 @@ export function CardView({
   const hasCountdown =
     typeof card.refillStartedAtMs === 'number' && typeof card.refillDurationMs === 'number'
   const isExploredLocation = card.definitionId.endsWith('-explored')
-  const isSosClearCard = card.definitionId === 'ending-sos'
+  const isSosClearCard = card.definitionId.startsWith('ending-sos')
+  const isInteractionLocked = card.isInteractionLocked === true
 
   return (
     <button
@@ -51,7 +52,9 @@ export function CardView({
         hasCountdown ? ' has-countdown' : ''
       }${isExploredLocation ? ' is-explored-location' : ''
       }${isSosClearCard ? ' is-sos-clear' : ''
+      }${isInteractionLocked ? ' is-interaction-locked' : ''
       }`}
+      disabled={isInteractionLocked}
       style={
         {
           '--card-x': `${card.x}px`,

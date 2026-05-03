@@ -24,6 +24,19 @@ type UseLevelSessionArgs = {
 }
 
 const SOS_CLEAR_RETURN_MS = 4200
+const AUTO_RETURN_ENDING_DEFINITION_IDS = [
+  'ending-sos',
+  'ending-sos-ch3',
+  'ending-sos-ch4',
+  'ending-sos-unknown',
+  'ending-sos-leak',
+] as const
+const AUTO_RETURN_MS_BY_ENDING: Partial<
+  Record<(typeof AUTO_RETURN_ENDING_DEFINITION_IDS)[number], number>
+> = {
+  'ending-sos-ch3': 2600,
+  'ending-sos-ch4': 2600,
+}
 
 export function useLevelSession({
   boardRef,
@@ -103,7 +116,11 @@ export function useLevelSession({
   }, [])
 
   useEffect(() => {
-    const sosClearCard = cards.find((card) => card.definitionId === 'ending-sos')
+    const sosClearCard = cards.find((card) =>
+      AUTO_RETURN_ENDING_DEFINITION_IDS.includes(
+        card.definitionId as (typeof AUTO_RETURN_ENDING_DEFINITION_IDS)[number],
+      ),
+    )
 
     if (!currentLevelId || !sosClearCard) {
       armedSosClearCardIdRef.current = null
@@ -119,6 +136,10 @@ export function useLevelSession({
     }
 
     const startedAtMs = Date.now()
+    const autoReturnMs =
+      AUTO_RETURN_MS_BY_ENDING[
+        sosClearCard.definitionId as (typeof AUTO_RETURN_ENDING_DEFINITION_IDS)[number]
+      ] ?? SOS_CLEAR_RETURN_MS
     armedSosClearCardIdRef.current = sosClearCard.id
     setNowMs(startedAtMs)
     setCards((currentCards) =>
@@ -127,7 +148,7 @@ export function useLevelSession({
           ? {
               ...card,
               refillStartedAtMs: startedAtMs,
-              refillDurationMs: SOS_CLEAR_RETURN_MS,
+              refillDurationMs: autoReturnMs,
             }
           : card,
       ),
@@ -135,7 +156,7 @@ export function useLevelSession({
     void logGameEvent('ui', 'SOS clear card armed for auto return', {
       levelId: currentLevelId,
       cardId: sosClearCard.id,
-      durationMs: SOS_CLEAR_RETURN_MS,
+      durationMs: autoReturnMs,
     })
 
     if (sosClearReturnTimeoutRef.current !== null) {
@@ -151,7 +172,7 @@ export function useLevelSession({
       armedSosClearCardIdRef.current = null
       sosClearReturnTimeoutRef.current = null
       void logGameEvent('ui', 'Auto returned to level select after SOS clear')
-    }, SOS_CLEAR_RETURN_MS)
+    }, autoReturnMs)
   }, [cards, currentLevelId, setCards, setNowMs])
 
   const handleStartGame = () => {

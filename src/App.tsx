@@ -74,6 +74,7 @@ function App() {
   }, [])
 
   useGameRuntime({
+    currentLevelId,
     boardRef,
     cards,
     productions,

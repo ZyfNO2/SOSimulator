@@ -26,12 +26,19 @@ const SOS_FOUNDATION_LAYOUT: Record<string, { x: number; y: number }> = {
   'kitachu-rooftop': { x: 1120, y: 72 },
 }
 
-export function getProductionMatches(cards: TableCard[]) {
+export function getProductionMatches(
+  cards: TableCard[],
+  currentLevelId: 'main' | 'level-1' | 'level-2' | 'level-3' | 'level-4' | null,
+) {
   const matches: ProductionMatch[] = []
   const matchKeys = new Set<string>()
 
   for (const startCard of cards) {
     for (const rule of cardOutputRules) {
+      if (currentLevelId && !rule.allowedLevelIds?.includes(currentLevelId)) {
+        continue
+      }
+
       if (
         rule.requiresMissingDefinitionIds &&
         rule.requiresMissingDefinitionIds.some((definitionId) =>

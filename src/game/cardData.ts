@@ -12,6 +12,7 @@ type RawCardOutputRuleRecord = {
   durationMs: number
   event?: string
   inputDefinitionIds?: string[]
+  allowedLevelIds?: ('main' | 'level-1' | 'level-2' | 'level-3' | 'level-4')[]
   requiresMissingDefinitionIds?: string[]
   outputDefinitionIds?: string[]
   consumeInputIndexes?: boolean[]
@@ -94,6 +95,7 @@ function normalizeCardOutputRule(rule: RawCardOutputRuleRecord): CardOutputRule 
   return {
     id: rule.id,
     inputDefinitionIds,
+    allowedLevelIds: rule.allowedLevelIds,
     requiresMissingDefinitionIds: rule.requiresMissingDefinitionIds,
     durationMs: rule.durationMs,
     event: rule.event ?? '',
@@ -175,6 +177,7 @@ export function createTableCardFromDefinition(
     decayAtMs: options?.decayAtMs,
     decayOutputDefinitionIds: options?.decayOutputDefinitionIds,
     isMother: false,
+    isInteractionLocked: false,
     refillStartedAtMs: null,
     refillDurationMs: null,
   }

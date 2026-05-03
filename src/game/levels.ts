@@ -1,7 +1,7 @@
 import type { TableCard } from './types'
 import { cardDefinitionMap, createTableCardFromDefinition } from './cardData'
 
-export type LevelId = 'main' | 'level-1' | 'level-2'
+export type LevelId = 'main' | 'level-1' | 'level-2' | 'level-3' | 'level-4'
 
 export type LevelConfig = {
   id: LevelId
@@ -49,7 +49,7 @@ export const mainLevel: LevelConfig = {
 export const level1: LevelConfig = {
   id: 'level-1',
   name: '成立SOS社吧',
-  description: '从阿虚和春日开始，把校园地点一口气摸透。',
+  description: '团长宣言落地：把无聊校园改造成异常事件现场。',
   isLocked: false,
   initialCards: makeInitialCards([
     { definitionId: 'kyon', x: 360, y: 220 },
@@ -60,7 +60,7 @@ export const level1: LevelConfig = {
 export const level2: LevelConfig = {
   id: 'level-2',
   name: 'SOS社团再启动',
-  description: '四位社员已就位，先从空空如也的活动室起步。',
+  description: '先搞到电脑，再用离谱企划把全校拖进SOS节奏。',
   isLocked: false,
   initialCards: makeInitialCards([
     { definitionId: 'kyon', x: 260, y: 220 },
@@ -71,7 +71,37 @@ export const level2: LevelConfig = {
   ]),
 }
 
-export const allLevels: LevelConfig[] = [mainLevel, level1, level2]
+export const level3: LevelConfig = {
+  id: 'level-3',
+  name: '日常与忧郁之下是？',
+  description: '真相一旦越线，春日会把日常直接推进终局。',
+  isLocked: false,
+  initialCards: makeInitialCards([
+    { definitionId: 'haruhi', x: 300, y: 210 },
+    { definitionId: 'kyon', x: 460, y: 210 },
+    { definitionId: 'asahina', x: 620, y: 210 },
+    { definitionId: 'nagato', x: 780, y: 210 },
+    { definitionId: 'sos-activity-room', x: 520, y: 72 },
+    { definitionId: 'transfer-student-rumor', x: 940, y: 210 },
+  ]),
+}
+
+export const level4: LevelConfig = {
+  id: 'level-4',
+  name: '八月？',
+  description: '同一段暑假不断重放。把既视感堆到阈值，才有资格结束循环。',
+  isLocked: false,
+  initialCards: makeInitialCards([
+    { definitionId: 'haruhi', x: 240, y: 220 },
+    { definitionId: 'kyon', x: 400, y: 220 },
+    { definitionId: 'asahina', x: 560, y: 220 },
+    { definitionId: 'nagato', x: 720, y: 220 },
+    { definitionId: 'koizumi', x: 880, y: 220 },
+    { definitionId: 'august-loop', x: 980, y: 72 },
+  ]),
+}
+
+export const allLevels: LevelConfig[] = [mainLevel, level1, level2, level3, level4]
 
 export function getLevelConfig(levelId: LevelId): LevelConfig {
   return allLevels.find((l) => l.id === levelId) ?? mainLevel

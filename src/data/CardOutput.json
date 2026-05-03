@@ -1,10 +1,11 @@
 [
   {
     "id": "sos-foundation-kyon-haruhi",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["haruhi", "kyon"],
     "requiresMissingDefinitionIds": ["sos-manifesto"],
     "durationMs": 2600,
-    "event": "阿虚和春日把口号落地，SOS社正式成立并开始校园排查。",
+    "event": "团长点名阿虚签字背锅，SOS社团当场成立并全校开图。",
     "outputDefinitionIds": [
       "sos-manifesto",
       "explore-campus",
@@ -19,30 +20,34 @@
   },
   {
     "id": "explore-campus-any-character",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["explore-campus", "__any-character__"],
     "durationMs": 2200,
-    "event": "任意角色参与校园探索，人物线索逐步浮现。",
+    "event": "只要有人跟团长出门，校园就会自动产出下一条线索。",
     "outputDefinitionIds": ["campus-character-clue"],
     "consumeInputIndexes": [false, false]
   },
   {
     "id": "lit-club-room-any-character-nagato",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["lit-club-room", "__any-character__"],
     "durationMs": 2400,
-    "event": "文艺社活动室的探索锁定长门，场地改组为SOS活动部。",
+    "event": "文艺社室被团长强制征用，长门入队，活动室正式改名SOS。",
     "outputDefinitionIds": ["nagato", "sos-activity-room"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "class2-any-character-asahina",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["class-2-room", "__any-character__"],
     "durationMs": 2400,
-    "event": "二年级教室探索到关键人物，朝比奈加入视野。",
+    "event": "二年级教室触发成员判定，朝比奈被团长直接拉进主线。",
     "outputDefinitionIds": ["asahina", "class-2-room-explored"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "gate-any-character-explored",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["kitachu-gate", "__any-character__"],
     "durationMs": 2200,
     "event": "校门区域完成排查，地点进入已探索状态。",
@@ -51,6 +56,7 @@
   },
   {
     "id": "courtyard-any-character-explored",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["kitachu-courtyard", "__any-character__"],
     "durationMs": 2200,
     "event": "中庭区域完成排查，地点进入已探索状态。",
@@ -59,6 +65,7 @@
   },
   {
     "id": "hallway-any-character-explored",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["kitachu-hallway", "__any-character__"],
     "durationMs": 2200,
     "event": "走廊区域完成排查，地点进入已探索状态。",
@@ -67,6 +74,7 @@
   },
   {
     "id": "rooftop-any-character-explored",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["kitachu-rooftop", "__any-character__"],
     "durationMs": 2200,
     "event": "天台区域完成排查，地点进入已探索状态。",
@@ -75,16 +83,18 @@
   },
   {
     "id": "sos-activity-room-full-members-clear",
+    "allowedLevelIds": ["level-1"],
     "inputDefinitionIds": ["sos-activity-room", "kyon", "haruhi", "nagato", "asahina"],
-    "requiresMissingDefinitionIds": ["ending-sos"],
+    "requiresMissingDefinitionIds": ["ending-sos", "transfer-student-rumor"],
     "durationMs": 6800,
-    "event": "SOS活动部全员就位，社团完成最终组建，宣言在桌面中央爆发。",
+    "event": "SOS活动部全员就位，团长宣布第一章结算。",
     "outputDefinitionIds": ["ending-sos"],
     "consumeInputIndexes": [true, false, false, false, false],
     "allowUnorderedTail": true
   },
   {
     "id": "chapter2-empty-room-to-wishes",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["sos-activity-room-empty"],
     "requiresMissingDefinitionIds": [
       "wish-computer",
@@ -97,77 +107,223 @@
       "ending-sos"
     ],
     "durationMs": 2200,
-    "event": "空空如也的活动室先给出两个核心愿望：设备和趣味。",
+    "event": "活动室空得发响？团长先下两条命令：要电脑，也要有趣。",
     "outputDefinitionIds": ["wish-computer", "wish-fun"],
     "consumeInputIndexes": [false]
   },
   {
     "id": "chapter2-wish-computer-kyon-parttime",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["wish-computer", "kyon"],
     "durationMs": 2200,
-    "event": "阿虚给出正经方案：先走打工路线。",
+    "event": "阿虚试图走常识路线：先打工，再搞设备。",
     "outputDefinitionIds": ["path-parttime"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "chapter2-wish-computer-haruhi-evil",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["wish-computer", "haruhi"],
     "durationMs": 2200,
-    "event": "春日选择效率优先：走邪恶路线。",
+    "event": "春日否决慢速方案，直接切到效率至上的非常规路线。",
     "outputDefinitionIds": ["path-evil"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "chapter2-evil-haruhi-chief-setup",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["path-evil", "haruhi"],
     "durationMs": 2400,
-    "event": "邪恶路线推进后，部长与把柄同时浮出水面。",
+    "event": "邪恶路线推进成功：部长出现，把柄同步入手。",
     "outputDefinitionIds": ["chief-leverage", "chief"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "chapter2-chief-leverage-chief-computer",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["chief-leverage", "chief"],
     "durationMs": 2400,
-    "event": "把柄与对象完成结算，电脑到手。",
+    "event": "团长把把柄拍在桌上，电脑交接完成。",
     "outputDefinitionIds": ["computer"],
     "consumeInputIndexes": [true, true]
   },
   {
     "id": "chapter2-parttime-all-members-computer",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["path-parttime", "kyon", "haruhi", "nagato", "asahina"],
     "requiresMissingDefinitionIds": ["computer"],
     "durationMs": 3600,
-    "event": "打工路线在四位社员协作下落地，最终凑出社团电脑。",
+    "event": "四人协作把打工线跑穿，设备预算终于凑齐。",
     "outputDefinitionIds": ["computer"],
     "consumeInputIndexes": [true, false, false, false, false],
     "allowUnorderedTail": true
   },
   {
     "id": "chapter2-computer-kyon-website",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["computer", "kyon"],
     "durationMs": 2400,
-    "event": "阿虚把电脑利用起来，SOS网站上线。",
+    "event": "阿虚被迫加班，SOS网站正式上线营业。",
     "outputDefinitionIds": ["sos-website"],
     "consumeInputIndexes": [true, false]
   },
   {
     "id": "chapter2-wish-fun-website-bunny-plan",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["wish-fun", "sos-website"],
     "durationMs": 2400,
-    "event": "趣味愿望与网站结合，兔女郎传单计划出炉。",
+    "event": "团长把‘有趣’写进执行案：兔女郎传单计划立刻通过。",
     "outputDefinitionIds": ["bunny-flyer-plan"],
     "consumeInputIndexes": [true, true]
   },
   {
     "id": "chapter2-bunny-plan-haruhi-asahina-clear",
+    "allowedLevelIds": ["level-2"],
     "inputDefinitionIds": ["bunny-flyer-plan", "haruhi", "asahina"],
     "requiresMissingDefinitionIds": ["ending-sos"],
     "durationMs": 6800,
-    "event": "兔女郎传单计划执行完成，SOS团本章达成通关。",
+    "event": "兔女郎企划打满曝光，第二章按团长标准结算通过。",
     "outputDefinitionIds": ["ending-sos"],
     "consumeInputIndexes": [true, false, false],
     "allowUnorderedTail": true
+  },
+  {
+    "id": "chapter3-rumor-haruhi-koizumi",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["transfer-student-rumor", "haruhi"],
+    "requiresMissingDefinitionIds": ["koizumi"],
+    "durationMs": 2400,
+    "event": "团长顺着传闻精准开人，古泉被强制拉入SOS观察名单。",
+    "outputDefinitionIds": ["koizumi"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter3-kyon-koizumi-intel-esper",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["kyon", "koizumi"],
+    "requiresMissingDefinitionIds": ["intel-esper"],
+    "durationMs": 2400,
+    "event": "阿虚和古泉对线后，超能力者情报正式坐实。",
+    "outputDefinitionIds": ["intel-esper"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter3-kyon-asahina-intel-future",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["kyon", "asahina"],
+    "requiresMissingDefinitionIds": ["intel-future"],
+    "durationMs": 2400,
+    "event": "朝比奈线路松口，未来人情报突破封锁。",
+    "outputDefinitionIds": ["intel-future"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter3-kyon-nagato-intel-alien",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["kyon", "nagato"],
+    "requiresMissingDefinitionIds": ["intel-alien"],
+    "durationMs": 2400,
+    "event": "长门给出高密度结论，外星人情报落地。",
+    "outputDefinitionIds": ["intel-alien"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter3-intel-esper-haruhi-fail",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["intel-esper", "haruhi"],
+    "requiresMissingDefinitionIds": ["ending-sos-unknown", "ending-sos-leak", "ending-sos-ch3"],
+    "durationMs": 5200,
+    "event": "真相被团长提前对齐，日常壳层立即崩裂。",
+    "outputDefinitionIds": ["ending-sos-unknown"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter3-intel-future-haruhi-fail",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["intel-future", "haruhi"],
+    "requiresMissingDefinitionIds": ["ending-sos-unknown", "ending-sos-leak", "ending-sos-ch3"],
+    "durationMs": 5200,
+    "event": "真相被团长提前对齐，日常壳层立即崩裂。",
+    "outputDefinitionIds": ["ending-sos-unknown"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter3-intel-alien-haruhi-fail",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["intel-alien", "haruhi"],
+    "requiresMissingDefinitionIds": ["ending-sos-unknown", "ending-sos-leak", "ending-sos-ch3"],
+    "durationMs": 5200,
+    "event": "真相被团长提前对齐，日常壳层立即崩裂。",
+    "outputDefinitionIds": ["ending-sos-unknown"],
+    "consumeInputIndexes": [true, false]
+  },
+  {
+    "id": "chapter3-area-closed-space-fail",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["closed-space-on-area"],
+    "requiresMissingDefinitionIds": ["ending-sos-unknown", "ending-sos-leak", "ending-sos-ch3"],
+    "durationMs": 30000,
+    "event": "闭锁空间侵蚀到底，里侧情报全面外泄。",
+    "outputDefinitionIds": ["ending-sos-leak"],
+    "consumeInputIndexes": [true]
+  },
+  {
+    "id": "chapter3-koizumi-closed-space-resolve",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["koizumi", "closed-space-on-area"],
+    "requiresMissingDefinitionIds": ["esper-resolve"],
+    "durationMs": 3000,
+    "event": "古泉线路成功压制闭锁空间，灾情被按回阈值。",
+    "outputDefinitionIds": ["esper-resolve", "area-restored"],
+    "consumeInputIndexes": [false, true]
+  },
+  {
+    "id": "chapter3-nagato-closed-space-carry",
+    "allowedLevelIds": ["level-3"],
+    "inputDefinitionIds": ["nagato", "closed-space-on-area"],
+    "requiresMissingDefinitionIds": ["alien-carry"],
+    "durationMs": 3000,
+    "event": "长门直接接管异常，吞噬地区被强行捞回。",
+    "outputDefinitionIds": ["alien-carry", "swallowed-area-fixed"],
+    "consumeInputIndexes": [false, true]
+  },
+  {
+    "id": "chapter4-kyon-asahina-time",
+    "allowedLevelIds": ["level-4"],
+    "inputDefinitionIds": ["kyon", "asahina"],
+    "requiresMissingDefinitionIds": ["chapter4-intel-time"],
+    "durationMs": 2200,
+    "event": "阿虚和朝比奈把时间线再核对了一遍，‘情报：时间’入手。",
+    "outputDefinitionIds": ["chapter4-intel-time"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter4-kyon-nagato-loop",
+    "allowedLevelIds": ["level-4"],
+    "inputDefinitionIds": ["kyon", "nagato"],
+    "durationMs": 2000,
+    "event": "阿虚和长门再次确认循环次数，‘第114514次暑假’计数+1。",
+    "outputDefinitionIds": [],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter4-kyon-koizumi-world",
+    "allowedLevelIds": ["level-4"],
+    "inputDefinitionIds": ["kyon", "koizumi"],
+    "requiresMissingDefinitionIds": ["chapter4-intel-world"],
+    "durationMs": 2200,
+    "event": "古泉给出世界层面的解释，‘情报：世界’落地。",
+    "outputDefinitionIds": ["chapter4-intel-world"],
+    "consumeInputIndexes": [false, false]
+  },
+  {
+    "id": "chapter4-kyon-haruhi-command",
+    "allowedLevelIds": ["level-4"],
+    "inputDefinitionIds": ["kyon", "haruhi"],
+    "durationMs": 2000,
+    "event": "团长拍板：最后一天就留给大家吧。",
+    "outputDefinitionIds": [],
+    "consumeInputIndexes": [false, false]
   },
   {
     "id": "shop-energy-money",
