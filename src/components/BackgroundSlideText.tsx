@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import backTextData from '../data/Back_text.json'
+import type { LevelId } from '../game/levels'
 import type { TableCard } from '../game/types'
 
 type BackgroundTextStage = {
@@ -17,6 +18,15 @@ type StoryState = {
   unlockedDefinitionIds: string[]
 }
 
+type LevelBackgroundTextConfig = {
+  defaultTexts?: string[]
+  sosQuoteTexts?: string[]
+  chapterTexts?: Partial<Record<StoryState['chapter'], string[]>>
+  obsessionTexts?: string[]
+  distortionTexts?: string[]
+  stages: Record<string, BackgroundTextStage>
+}
+
 type SlotState = {
   text: string
   fontSize: number
@@ -30,6 +40,7 @@ const SLOT_COUNT = 6
 const CHARACTER_DELAY_MS = 200
 const CHARACTER_ANIMATION_MS = 1600
 const SLOT_GAP_MS = 250
+const backgroundTextMap = backTextData as Record<LevelId, LevelBackgroundTextConfig>
 
 function normalizeValue(value: string) {
   return value.trim().toLowerCase()
@@ -62,49 +73,45 @@ function isSosQuoteMode(cards: TableCard[]) {
   return hasSosCoreMembers && !isSecondChapterStart
 }
 
-function getSosQuoteTexts() {
-  return [
-    '我对普通的人类没有兴趣。',
-    '你们当中要是有外星人，',
-    '未来人，',
-    '异世界人，',
-    '超能力者的话，',
-    '就尽管来找我吧。',
-    '普通的人类',
-    '外星人',
-    '未来人',
-    '异世界人',
-    '超能力者',
-    '凉宫春日',
-  ]
-}
+function getStoryTexts(
+  levelId: LevelId,
+  storyState: StoryState,
+  cards: TableCard[],
+) {
+  const levelConfig = backgroundTextMap[levelId]
 
-function getStoryTexts(storyState: StoryState, cards: TableCard[]) {
-  if (isSosQuoteMode(cards)) {
-    return getSosQuoteTexts()
+  if (!levelConfig) {
+    return []
   }
+  const defaultTexts = levelConfig.defaultTexts ?? []
 
-  const chapterTexts: Record<StoryState['chapter'], string[]> = {
-    umbrella: ['只是失物。', '她停下来看了第二眼。'],
-    testimony: ['传闻开始自己互相证明。', '每个人都记得一点点。'],
-    'missing-owner': ['失主开始像真的存在。', '世界在给空白补名字。'],
-    'final-rain': ['这场雨在等一个结尾。', '放学时刻被拖得太长了。'],
+  if (levelConfig.sosQuoteTexts && isSosQuoteMode(cards)) {
+    return [...defaultTexts, ...levelConfig.sosQuoteTexts]
   }
 
   const obsessionTexts =
     storyState.obsessionLevel > 0
-      ? ['这把伞不该被丢下。', '她越相信，世界越像在附和。']
+      ? levelConfig.obsessionTexts ?? []
       : []
   const distortionTexts =
     storyState.distortionLevel > 0
-      ? ['答案不是被找到的。', '世界开始自动补证。']
+      ? levelConfig.distortionTexts ?? []
       : []
 
-  return [...chapterTexts[storyState.chapter], ...obsessionTexts, ...distortionTexts]
+  return [
+    ...defaultTexts,
+    ...(levelConfig.chapterTexts?.[storyState.chapter] ?? []),
+    ...obsessionTexts,
+    ...distortionTexts,
+  ]
 }
 
-function getActiveBackgroundConfig(cards: TableCard[], storyState: StoryState) {
-  const stageMap = backTextData as BackgroundTextData
+function getActiveBackgroundConfig(
+  levelId: LevelId,
+  cards: TableCard[],
+  storyState: StoryState,
+) {
+  const stageMap = backgroundTextMap[levelId]?.stages ?? ({} as BackgroundTextData)
   const availableKeys = new Set(
     cards.flatMap((card) => [normalizeValue(card.definitionId), normalizeValue(card.name)]),
   )
@@ -123,7 +130,7 @@ function getActiveBackgroundConfig(cards: TableCard[], storyState: StoryState) {
     )
 
   return {
-    activeTexts: [...activeTexts, ...getStoryTexts(storyState, cards)],
+    activeTexts: [...activeTexts, ...getStoryTexts(levelId, storyState, cards)],
     maxVisibleLines:
       activeMaxValues.length > 0 ? Math.min(...activeMaxValues, SLOT_COUNT) : SLOT_COUNT,
   }
@@ -221,15 +228,17 @@ function BackgroundSlideTextSlot({
 }
 
 export function BackgroundSlideText({
+  currentLevelId,
   cards,
   storyState,
 }: {
+  currentLevelId: LevelId
   cards: TableCard[]
   storyState: StoryState
 }) {
   const { activeTexts, maxVisibleLines } = useMemo(
-    () => getActiveBackgroundConfig(cards, storyState),
-    [cards, storyState],
+    () => getActiveBackgroundConfig(currentLevelId, cards, storyState),
+    [cards, currentLevelId, storyState],
   )
   const activeTextKey = useMemo(() => activeTexts.join('\u0000'), [activeTexts])
 

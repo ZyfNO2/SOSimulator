@@ -1,4 +1,8 @@
-import { cardDefinitionMap, cardOutputRules, createTableCardFromDefinition } from './cardData'
+import {
+  cardDefinitionMap,
+  createTableCardFromDefinition,
+  getCardOutputRulesForLevel,
+} from './cardData'
 import type { MutableRefObject } from 'react'
 import {
   CARD_HEIGHT,
@@ -32,13 +36,10 @@ export function getProductionMatches(
 ) {
   const matches: ProductionMatch[] = []
   const matchKeys = new Set<string>()
+  const activeRules = getCardOutputRulesForLevel(currentLevelId)
 
   for (const startCard of cards) {
-    for (const rule of cardOutputRules) {
-      if (currentLevelId && !rule.allowedLevelIds?.includes(currentLevelId)) {
-        continue
-      }
-
+    for (const rule of activeRules) {
       if (
         rule.requiresMissingDefinitionIds &&
         rule.requiresMissingDefinitionIds.some((definitionId) =>

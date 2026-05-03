@@ -1,5 +1,5 @@
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
-import { cardDefinitionMap } from '../cardData'
+import { getCardDefinitionMapForLevel } from '../cardData'
 import {
   CARD_HEIGHT,
   CARD_WIDTH,
@@ -7,6 +7,7 @@ import {
   RESOURCE_MOTHER_PADDING_BOTTOM,
   RESOURCE_MOTHER_PADDING_LEFT,
 } from '../constants'
+import type { LevelId } from '../levels'
 import { clamp } from '../stacking'
 import type { TableCard } from '../types'
 
@@ -63,27 +64,24 @@ function syncMotherCardsToBoard(
 }
 
 type UseCardPresentationSyncArgs = {
+  currentLevelId: LevelId | null
   boardRef: MutableRefObject<HTMLDivElement | null>
   cards: TableCard[]
-  archivedCards: TableCard[]
   hasStarted: boolean
   setCards: Dispatch<SetStateAction<TableCard[]>>
   setSeenDefinitionIds: Dispatch<SetStateAction<string[]>>
 }
 
 export function useCardPresentationSync({
+  currentLevelId,
   boardRef,
   cards,
-  archivedCards,
   hasStarted,
   setCards,
   setSeenDefinitionIds,
 }: UseCardPresentationSyncArgs) {
   useEffect(() => {
-    const presentDefinitionIds = [
-      ...cards.map((card) => card.definitionId),
-      ...archivedCards.map((card) => card.definitionId),
-    ]
+    const presentDefinitionIds = cards.map((card) => card.definitionId)
 
     setSeenDefinitionIds((currentIds) => {
       const nextIds = [...currentIds]
@@ -100,7 +98,7 @@ export function useCardPresentationSync({
 
       return hasChanges ? nextIds : currentIds
     })
-  }, [archivedCards, cards, setSeenDefinitionIds])
+  }, [cards, setSeenDefinitionIds])
 
   useEffect(() => {
     const boardBounds = boardRef.current?.getBoundingClientRect()
@@ -135,11 +133,13 @@ export function useCardPresentationSync({
   }, [boardRef, setCards])
 
   useEffect(() => {
+    const activeCardDefinitionMap = getCardDefinitionMapForLevel(currentLevelId)
+
     setCards((currentCards) => {
       let hasChanges = false
 
       const nextCards = currentCards.map((card) => {
-        const definition = cardDefinitionMap.get(card.definitionId)
+        const definition = activeCardDefinitionMap.get(card.definitionId)
 
         if (!definition) {
           return card
@@ -168,5 +168,5 @@ export function useCardPresentationSync({
 
       return hasChanges ? nextCards : currentCards
     })
-  }, [setCards])
+  }, [currentLevelId, setCards])
 }

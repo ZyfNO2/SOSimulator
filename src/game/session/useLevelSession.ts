@@ -10,7 +10,6 @@ type UseLevelSessionArgs = {
   setCards: Dispatch<SetStateAction<TableCard[]>>
   setSeenDefinitionIds: Dispatch<SetStateAction<string[]>>
   setStoryState: Dispatch<SetStateAction<StoryState>>
-  setArchivedCards: Dispatch<SetStateAction<TableCard[]>>
   setProductions: Dispatch<SetStateAction<ProductionRun[]>>
   setSelectedCardId: Dispatch<SetStateAction<string | null>>
   setDraggingStackIds: Dispatch<SetStateAction<string[] | null>>
@@ -44,7 +43,6 @@ export function useLevelSession({
   setCards,
   setSeenDefinitionIds,
   setStoryState,
-  setArchivedCards,
   setProductions,
   setSelectedCardId,
   setDraggingStackIds,
@@ -73,7 +71,6 @@ export function useLevelSession({
         ...new Set(config.initialCards.map((card) => card.definitionId)),
       ])
       setStoryState(INITIAL_STORY_STATE)
-      setArchivedCards([])
       setProductions([])
       setSelectedCardId(null)
       setDraggingStackIds(null)
@@ -92,7 +89,6 @@ export function useLevelSession({
     dragRef,
     instanceSequenceRef,
     productionSequenceRef,
-    setArchivedCards,
     setCards,
     setDraggingStackIds,
     setProductions,

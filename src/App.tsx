@@ -4,7 +4,7 @@ import { CardBoard } from './components/CardBoard'
 import { EventCardDetail } from './components/EventCardDetail'
 import { MainlineTray } from './components/MainlineTray'
 import {
-  cardDefinitionMap,
+  getCardDefinitionMapForLevel,
 } from './game/cardData'
 import { allLevels } from './game/levels'
 import { useDragController } from './game/interaction/useDragController'
@@ -13,6 +13,10 @@ import { useCardPresentationSync } from './game/runtime/useCardPresentationSync'
 import { useGameRuntime } from './game/runtime/useGameRuntime'
 import { useLevelSession } from './game/session/useLevelSession'
 import type { DragState, ProductionRun, TableCard } from './game/types'
+import {
+  getObservedDefinitionIds,
+  normalizeStoredObservationCards,
+} from './game/observation'
 import {
   INITIAL_STORY_STATE,
   type StoryState,
@@ -31,7 +35,6 @@ function App() {
   const settledProductionIdsRef = useRef<Set<string>>(new Set())
   const settledWeatherTimerKeysRef = useRef<Set<string>>(new Set())
   const [cards, setCards] = useState<TableCard[]>([])
-  const [archivedCards, setArchivedCards] = useState<TableCard[]>([])
   const [isTrayOpen, setIsTrayOpen] = useState(false)
   const [draggingStackIds, setDraggingStackIds] = useState<string[] | null>(null)
   const [productions, setProductions] = useState<ProductionRun[]>([])
@@ -39,6 +42,7 @@ function App() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [storyState, setStoryState] = useState<StoryState>(INITIAL_STORY_STATE)
   const [seenDefinitionIds, setSeenDefinitionIds] = useState<string[]>([])
+  const [storedObservationCards, setStoredObservationCards] = useState<TableCard[]>([])
   const [bgmVolume, setBgmVolume] = useState(BGM_DEFAULT_VOLUME)
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null)
   const [portraitFlashUntilByDefinitionId, setPortraitFlashUntilByDefinitionId] = useState<
@@ -59,7 +63,6 @@ function App() {
     setCards,
     setSeenDefinitionIds,
     setStoryState,
-    setArchivedCards,
     setProductions,
     setSelectedCardId,
     setDraggingStackIds,
@@ -80,6 +83,14 @@ function App() {
       })),
     })
   }, [])
+
+  useEffect(() => {
+    setStoredObservationCards([])
+  }, [currentLevelId])
+
+  useEffect(() => {
+    setStoredObservationCards((currentCards) => normalizeStoredObservationCards(currentCards))
+  }, [setStoredObservationCards])
 
   useEffect(() => {
     const audio = new Audio(BGM_AUDIO_SRC)
@@ -177,7 +188,6 @@ function App() {
     hasStarted,
     nowMs,
     setCards,
-    setArchivedCards,
     setProductions,
     setStoryState,
     setNowMs,
@@ -193,9 +203,9 @@ function App() {
   })
 
   useCardPresentationSync({
+    currentLevelId,
     boardRef,
     cards,
-    archivedCards,
     hasStarted,
     setCards,
     setSeenDefinitionIds,
@@ -205,17 +215,17 @@ function App() {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    handleStoredCardPointerDown,
+    handleObservationCardPointerDown,
   } = useDragController({
     boardRef,
     trayRef,
     cards,
-    archivedCards,
+    storedCards: storedObservationCards,
     dragRef,
     suppressClickRef,
     instanceSequenceRef,
     setCards,
-    setArchivedCards,
+    setStoredCards: setStoredObservationCards,
     setDraggingStackIds,
   })
 
@@ -231,9 +241,58 @@ function App() {
   const selectedCard = selectedCardId
     ? cards.find((candidate) => candidate.id === selectedCardId) ?? null
     : null
+  const activeCardDefinitionMap = getCardDefinitionMapForLevel(currentLevelId)
   const selectedCardDefinition = selectedCard
-    ? cardDefinitionMap.get(selectedCard.definitionId) ?? null
+    ? activeCardDefinitionMap.get(selectedCard.definitionId) ?? null
     : null
+  const observedDefinitionIds = getObservedDefinitionIds(seenDefinitionIds).filter((definitionId) =>
+    activeCardDefinitionMap.has(definitionId),
+  )
+  const observationEntries = observedDefinitionIds
+    .map((definitionId) => {
+      const storedCard = storedObservationCards.find((card) => card.definitionId === definitionId)
+      const boardCard = cards.find((card) => card.definitionId === definitionId)
+      const definition = activeCardDefinitionMap.get(definitionId)
+
+      if (!definition) {
+        return null
+      }
+
+      if (boardCard) {
+        return {
+          definitionId,
+          name: boardCard.name,
+          kindLabel: boardCard.kindLabel,
+          accent: boardCard.accent,
+          quantity: boardCard.quantity,
+          isAvailable: false,
+          statusLabel: '场上',
+        }
+      }
+
+      if (storedCard) {
+        return {
+          definitionId,
+          name: storedCard.name,
+          kindLabel: storedCard.kindLabel,
+          accent: storedCard.accent,
+          quantity: storedCard.quantity,
+          isAvailable: true,
+          statusLabel: '观测中',
+        }
+      }
+
+      return {
+        definitionId,
+        name: definition.name,
+        kindLabel: definition.kindLabel,
+        accent: definition.accent,
+        quantity: undefined,
+        isAvailable: true,
+        statusLabel: '可取出',
+      }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
 
   if (!currentLevelId) {
     return (
@@ -289,6 +348,7 @@ function App() {
         />
       </section>
       <CardBoard
+        currentLevelId={currentLevelId}
         boardRef={boardRef}
         cards={cards}
         productions={productions}
@@ -305,13 +365,14 @@ function App() {
       <MainlineTray
         trayRef={trayRef}
         isOpen={isTrayOpen}
-        archivedCards={archivedCards}
+        entries={observationEntries}
         onToggle={() => setIsTrayOpen((current) => !current)}
-        onStoredCardPointerDown={handleStoredCardPointerDown}
+        onObservationCardPointerDown={handleObservationCardPointerDown}
       />
 
       {selectedCard && selectedCardDefinition ? (
         <EventCardDetail
+          currentLevelId={currentLevelId}
           card={selectedCard}
           cards={cards}
           definition={selectedCardDefinition}

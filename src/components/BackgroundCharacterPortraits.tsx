@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
+const PORTRAIT_FLASH_DURATION_MS = 5000
+
 const PORTRAIT_SRC_BY_DEFINITION_ID: Record<
   'kyon' | 'haruhi' | 'asahina' | 'nagato' | 'koizumi',
   string
@@ -61,20 +63,17 @@ export function BackgroundCharacterPortraits({
 
   return (
     <div className="background-portrait-layer" aria-hidden="true">
-      {activePortraitEntries.map(({ definitionId, flashUntilMs }) => {
-        const remainingRatio = Math.max(Math.min((flashUntilMs - nowMs) / 5000, 1), 0)
-        const opacity = 0.1 + remainingRatio * 0.3
-
-        return (
-          <img
-            key={`${definitionId}-${flashUntilMs}`}
-            src={PORTRAIT_SRC_BY_DEFINITION_ID[definitionId]}
-            className={`background-portrait ${SLOT_CLASS_BY_DEFINITION_ID[definitionId]}`}
-            style={{ opacity }}
-            alt=""
-          />
-        )
-      })}
+      {activePortraitEntries.map(({ definitionId, flashUntilMs }) => (
+        <img
+          key={`${definitionId}-${flashUntilMs}`}
+          src={PORTRAIT_SRC_BY_DEFINITION_ID[definitionId]}
+          className={`background-portrait ${SLOT_CLASS_BY_DEFINITION_ID[definitionId]}`}
+          style={{
+            animationDuration: `${PORTRAIT_FLASH_DURATION_MS}ms`,
+          }}
+          alt=""
+        />
+      ))}
     </div>
   )
 }

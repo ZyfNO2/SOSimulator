@@ -157,18 +157,6 @@ function detachCardPair(currentCards: TableCard[], firstCardId: string, secondCa
   })
 }
 
-function lockCharacterCards(currentCards: TableCard[], cardIds: string[]) {
-  const targetIds = new Set(cardIds)
-  return currentCards.map((card) =>
-    targetIds.has(card.id) && card.kind === 'character'
-      ? {
-          ...card,
-          isInteractionLocked: true,
-        }
-      : card,
-  )
-}
-
 function playAudioEffect(src: string, maxPlayMs?: number, volume?: number) {
   const audio = new Audio(src)
   if (typeof volume === 'number') {
@@ -204,7 +192,6 @@ type UseGameRuntimeArgs = {
   hasStarted: boolean
   nowMs: number
   setCards: Dispatch<SetStateAction<TableCard[]>>
-  setArchivedCards: Dispatch<SetStateAction<TableCard[]>>
   setProductions: Dispatch<SetStateAction<ProductionRun[]>>
   setStoryState: Dispatch<SetStateAction<StoryState>>
   setNowMs: Dispatch<SetStateAction<number>>
@@ -228,7 +215,6 @@ export function useGameRuntime({
   hasStarted,
   nowMs,
   setCards,
-  setArchivedCards,
   setProductions,
   setStoryState,
   setNowMs,
@@ -972,7 +958,6 @@ export function useGameRuntime({
       settledProductionIdsRef.current.clear()
       setDraggingStackIds(null)
       setSelectedCardId(null)
-      setArchivedCards([])
       setProductions([])
       setCards([endingCard])
       void logGameEvent('weather', 'Forced imaginary ending after downpour countdown', {
@@ -1010,7 +995,6 @@ export function useGameRuntime({
     dragRef,
     instanceSequenceRef,
     nowMs,
-    setArchivedCards,
     setCards,
     setDraggingStackIds,
     setProductions,
@@ -1147,9 +1131,6 @@ export function useGameRuntime({
             triggerCharacterPortraitFlash(portraitDefinitionIds)
           }
           const anchor = getProductionAnchor(nextCards, run)
-          const isChapter4DialogueRun =
-            currentLevelId === 'level-4' && run.ruleId.startsWith('chapter4-kyon-')
-
           if (run.ruleId === 'chapter4-kyon-nagato-loop') {
             const [kyonCardId, nagatoCardId] = run.inputCardIds
             const existingLoopCard = nextCards.find(
@@ -1192,7 +1173,6 @@ export function useGameRuntime({
             }
 
             nextCards = detachCardPair(nextCards, kyonCardId, nagatoCardId)
-            nextCards = lockCharacterCards(nextCards, run.inputCardIds)
             continue
           }
 
@@ -1252,7 +1232,6 @@ export function useGameRuntime({
             }
 
             nextCards = detachCardPair(nextCards, kyonCardId, haruhiCardId)
-            nextCards = lockCharacterCards(nextCards, run.inputCardIds)
             continue
           }
 
@@ -1268,14 +1247,12 @@ export function useGameRuntime({
             instanceSequenceRef,
           )
 
-          if (isChapter4DialogueRun) {
+          if (currentLevelId === 'level-4' && run.ruleId.startsWith('chapter4-kyon-')) {
             const [firstCardId, secondCardId] = run.inputCardIds
 
             if (firstCardId && secondCardId) {
               nextCards = detachCardPair(nextCards, firstCardId, secondCardId)
             }
-
-            nextCards = lockCharacterCards(nextCards, run.inputCardIds)
           }
 
           if (

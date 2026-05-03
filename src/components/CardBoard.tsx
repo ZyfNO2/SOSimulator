@@ -3,6 +3,7 @@ import { BackgroundSlideText } from './BackgroundSlideText'
 import { BackgroundCharacterPortraits } from './BackgroundCharacterPortraits'
 import { CardView } from './CardView'
 import { ProductionEffect } from './ProductionEffect'
+import type { LevelId } from '../game/levels'
 import type { ProductionRun, TableCard } from '../game/types'
 
 type StoryState = {
@@ -13,6 +14,7 @@ type StoryState = {
 }
 
 export function CardBoard({
+  currentLevelId,
   boardRef,
   cards,
   productions,
@@ -26,6 +28,7 @@ export function CardBoard({
   onPointerUp,
   onCardClick,
 }: {
+  currentLevelId: LevelId
   boardRef: MutableRefObject<HTMLDivElement | null>
   cards: TableCard[]
   productions: ProductionRun[]
@@ -58,7 +61,11 @@ export function CardBoard({
   return (
     <section ref={boardRef} className="table" aria-label="游戏桌面空地">
       <div className="table-noise" aria-hidden="true" />
-      <BackgroundSlideText cards={cards} storyState={storyState} />
+      <BackgroundSlideText
+        currentLevelId={currentLevelId}
+        cards={cards}
+        storyState={storyState}
+      />
       <BackgroundCharacterPortraits
         portraitFlashUntilByDefinitionId={portraitFlashUntilByDefinitionId}
       />

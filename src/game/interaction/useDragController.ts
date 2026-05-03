@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type Dispatch, type MutableRefObject, type PointerEvent as ReactPointerEvent, type RefObject, type SetStateAction } from 'react'
+import { useCallback, useEffect, type Dispatch, type MutableRefObject, type PointerEvent as ReactPointerEvent, type SetStateAction } from 'react'
 import {
   cardDefinitionMap,
   createTableCardFromDefinition,
@@ -18,60 +18,35 @@ import {
   mergeStackedResourceCards,
   updateStackRelationship,
 } from '../stacking'
-import { MAINLINE_CARD_DEFINITION_IDS } from '../story'
 import type { DragState, TableCard } from '../types'
+import {
+  isObservationEligibleDefinitionId,
+  normalizeStoredObservationCards,
+} from '../observation'
 
 type UseDragControllerArgs = {
   boardRef: MutableRefObject<HTMLDivElement | null>
-  trayRef: RefObject<HTMLDivElement | null>
+  trayRef: MutableRefObject<HTMLDivElement | null>
   cards: TableCard[]
-  archivedCards: TableCard[]
+  storedCards: TableCard[]
   dragRef: MutableRefObject<DragState | null>
   suppressClickRef: MutableRefObject<boolean>
   instanceSequenceRef: MutableRefObject<number>
   setCards: Dispatch<SetStateAction<TableCard[]>>
-  setArchivedCards: Dispatch<SetStateAction<TableCard[]>>
+  setStoredCards: Dispatch<SetStateAction<TableCard[]>>
   setDraggingStackIds: Dispatch<SetStateAction<string[] | null>>
-}
-
-function removeCardPreservingChain(currentCards: TableCard[], cardId: string) {
-  const targetCard = currentCards.find((card) => card.id === cardId)
-
-  if (!targetCard) {
-    return currentCards
-  }
-
-  return currentCards
-    .filter((card) => card.id !== cardId)
-    .map((card) => {
-      if (card.id === targetCard.parentCardId) {
-        return {
-          ...card,
-          childCardId: targetCard.childCardId,
-        }
-      }
-
-      if (card.id === targetCard.childCardId) {
-        return {
-          ...card,
-          parentCardId: targetCard.parentCardId,
-        }
-      }
-
-      return card
-    })
 }
 
 export function useDragController({
   boardRef,
   trayRef,
   cards,
-  archivedCards,
+  storedCards,
   dragRef,
   suppressClickRef,
   instanceSequenceRef,
   setCards,
-  setArchivedCards,
+  setStoredCards,
   setDraggingStackIds,
 }: UseDragControllerArgs) {
   const moveDraggedCard = useCallback((pointerId: number, clientX: number, clientY: number) => {
@@ -151,35 +126,49 @@ export function useDragController({
       return
     }
 
-    dragRef.current = null
-    setDraggingStackIds(null)
-
-    const trayBounds = trayRef.current?.getBoundingClientRect()
-    const droppedInTray =
-      trayBounds &&
+    const trayBounds = trayRef.current?.getBoundingClientRect() ?? null
+    const isDroppedIntoTray =
+      trayBounds !== null &&
       clientX >= trayBounds.left &&
       clientX <= trayBounds.right &&
       clientY >= trayBounds.top &&
       clientY <= trayBounds.bottom
 
-    const movingCardSnapshot = cards.find((card) => card.id === dragState.cardId) ?? null
-    const archivedCard =
-      droppedInTray &&
-      movingCardSnapshot &&
-      MAINLINE_CARD_DEFINITION_IDS.has(movingCardSnapshot.definitionId) &&
-      !movingCardSnapshot.childCardId
-        ? {
-            ...movingCardSnapshot,
-            parentCardId: null,
-            childCardId: null,
-          }
-        : null
+    dragRef.current = null
+    setDraggingStackIds(null)
+
+    if (isDroppedIntoTray) {
+      const draggedCards = dragState.stackCardIds
+        .map((cardId) => cards.find((card) => card.id === cardId) ?? null)
+        .filter((card): card is TableCard => card !== null)
+
+      if (
+        draggedCards.length > 0 &&
+        draggedCards.every((card) => isObservationEligibleDefinitionId(card.definitionId))
+      ) {
+        const storedCardIds = new Set(draggedCards.map((card) => card.id))
+        const storedCardsSnapshot = draggedCards.map((card) => ({
+          ...card,
+          parentCardId: null,
+          childCardId: null,
+        }))
+
+        setCards((currentCards) =>
+          currentCards.filter((card) => !storedCardIds.has(card.id)),
+        )
+        setStoredCards((currentCards) =>
+          normalizeStoredObservationCards([...storedCardsSnapshot, ...currentCards]),
+        )
+        void logGameEvent('tray', 'Stored cards in observation tray', {
+          cardIds: storedCardsSnapshot.map((card) => card.id),
+          definitionIds: storedCardsSnapshot.map((card) => card.definitionId),
+        })
+
+        return
+      }
+    }
 
     setCards((currentCards) => {
-      if (archivedCard) {
-        return removeCardPreservingChain(currentCards, archivedCard.id)
-      }
-
       const mergedCards = mergeStackedResourceCards(currentCards, dragState.cardId)
 
       if (!mergedCards.some((card) => card.id === dragState.cardId)) {
@@ -188,14 +177,7 @@ export function useDragController({
 
       return bringStackToFront(mergedCards, dragState.cardId)
     })
-
-    if (archivedCard !== null) {
-      setArchivedCards((currentArchived) => [...currentArchived, archivedCard])
-      void logGameEvent('tray', 'Archived mainline card', {
-        definitionId: archivedCard.definitionId,
-      })
-    }
-  }, [cards, dragRef, setArchivedCards, setCards, setDraggingStackIds, trayRef])
+  }, [cards, dragRef, setCards, setDraggingStackIds, setStoredCards, trayRef])
 
   useEffect(() => {
     const handleWindowPointerMove = (event: PointerEvent) => {
@@ -354,65 +336,89 @@ export function useDragController({
     finishDraggedCard(event.pointerId, event.clientX, event.clientY)
   }, [dragRef, finishDraggedCard])
 
-  const handleStoredCardPointerDown = useCallback((
+  const handleObservationCardPointerDown = useCallback((
     event: ReactPointerEvent<HTMLButtonElement>,
-    cardId: string,
+    definitionId: string,
   ) => {
     const board = boardRef.current
-    const storedCard = archivedCards.find((card) => card.id === cardId)
+    const storedCard = storedCards.find((card) => card.definitionId === definitionId)
 
-    if (!board || !storedCard) {
+    if (!board || cards.some((card) => card.definitionId === definitionId)) {
+      return
+    }
+
+    const definition = cardDefinitionMap.get(definitionId)
+
+    if (!storedCard && !definition) {
       return
     }
 
     const boardBounds = board.getBoundingClientRect()
-    const nextX = clampCardPosition(
+    const nextPosition = clampCardPosition(
       boardBounds.width,
       boardBounds.height,
       event.clientX - boardBounds.left - 59,
       event.clientY - boardBounds.top - 78,
-    ).x
-    const nextY = clampCardPosition(
-      boardBounds.width,
-      boardBounds.height,
-      event.clientX - boardBounds.left - 59,
-      event.clientY - boardBounds.top - 78,
-    ).y
+    )
+    const restoredCard: TableCard = storedCard
+      ? {
+          ...storedCard,
+          x: nextPosition.x,
+          y: nextPosition.y,
+          parentCardId: null,
+          childCardId: null,
+          spawnedAtMs: Date.now(),
+          spawnOriginX: nextPosition.x,
+          spawnOriginY: Math.max(nextPosition.y - 42, 0),
+        }
+      : createTableCardFromDefinition(
+          definition!,
+          `${definitionId}-${instanceSequenceRef.current + 1}`,
+          nextPosition.x,
+          nextPosition.y,
+          {
+            spawnedAtMs: Date.now(),
+            spawnOriginX: nextPosition.x,
+            spawnOriginY: Math.max(nextPosition.y - 42, 0),
+          },
+        )
+
+    if (!storedCard) {
+      instanceSequenceRef.current += 1
+    }
 
     dragRef.current = {
-      cardId,
-      stackCardIds: [cardId],
+      cardId: restoredCard.id,
+      stackCardIds: [restoredCard.id],
       pointerId: event.pointerId,
       button: event.button,
       offsetX: 59,
       offsetY: 78,
       startClientX: event.clientX,
       startClientY: event.clientY,
-      source: 'tray',
+      source: 'supply',
     }
     suppressClickRef.current = false
 
-    setArchivedCards((currentArchived) => currentArchived.filter((card) => card.id !== cardId))
-    setCards((currentCards) => [
-      ...currentCards,
-      {
-        ...storedCard,
-        x: nextX,
-        y: nextY,
-        parentCardId: null,
-        childCardId: null,
-      },
-    ])
-    setDraggingStackIds([cardId])
-    void logGameEvent('tray', 'Restored mainline card to board', {
-      definitionId: storedCard.definitionId,
+    event.currentTarget.setPointerCapture(event.pointerId)
+
+    if (storedCard) {
+      setStoredCards((currentCards) =>
+        currentCards.filter((card) => card.definitionId !== definitionId),
+      )
+    }
+    setCards((currentCards) => [...currentCards, restoredCard])
+    setDraggingStackIds([restoredCard.id])
+    void logGameEvent('tray', storedCard ? 'Restored stored card from observation tray' : 'Spawned observed card from tray record', {
+      definitionId: restoredCard.definitionId,
+      cardId: restoredCard.id,
     })
-  }, [archivedCards, boardRef, dragRef, setArchivedCards, setCards, setDraggingStackIds, suppressClickRef])
+  }, [boardRef, cards, dragRef, instanceSequenceRef, setCards, setDraggingStackIds, setStoredCards, storedCards, suppressClickRef])
 
   return {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-    handleStoredCardPointerDown,
+    handleObservationCardPointerDown,
   }
 }

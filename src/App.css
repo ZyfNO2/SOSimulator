@@ -94,8 +94,11 @@
   max-height: 420px;
   width: auto;
   object-fit: contain;
+  opacity: 0;
   filter: saturate(0.86) brightness(0.9);
-  transition: opacity 200ms linear;
+  animation-name: background-portrait-presence;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
 }
 
 .background-portrait.slot-kyon {
@@ -121,6 +124,24 @@
 .background-portrait.slot-koizumi {
   left: 80%;
   bottom: 2%;
+}
+
+@keyframes background-portrait-presence {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.4;
+  }
+
+  80% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .background-slide-text {
@@ -619,6 +640,13 @@
   cursor: grabbing;
 }
 
+.mainline-tray-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  filter: grayscale(0.18);
+  box-shadow: none;
+}
+
 .mainline-tray-card-name {
   display: flex;
   align-items: flex-start;
@@ -640,6 +668,12 @@
   color: var(--text-soft);
   font-size: 0.7rem;
   line-height: 1.4;
+}
+
+.mainline-tray-card-status {
+  color: var(--accent);
+  font-size: 0.72rem;
+  line-height: 1.3;
 }
 
 .mainline-tray-empty {

@@ -1,5 +1,6 @@
 import cardKinds from '../data/CardKind.json'
 import cardOutputs from '../data/CardOutput.json'
+import levelCardPools from '../data/LevelCardPools.json'
 import type {
   CardDefinitionRecord,
   CardOutputRule,
@@ -7,12 +8,15 @@ import type {
   OutputCardOverride,
   TableCard,
 } from './types'
+
+type ScopedLevelId = 'main' | 'level-1' | 'level-2' | 'level-3' | 'level-4'
+
 type RawCardOutputRuleRecord = {
   id: string
   durationMs: number
   event?: string
   inputDefinitionIds?: string[]
-  allowedLevelIds?: ('main' | 'level-1' | 'level-2' | 'level-3' | 'level-4')[]
+  allowedLevelIds?: ScopedLevelId[]
   requiresMissingDefinitionIds?: string[]
   outputDefinitionIds?: string[]
   consumeInputIndexes?: boolean[]
@@ -23,6 +27,11 @@ type RawCardOutputRuleRecord = {
   outputDefinitionId?: string | null
   consumeParent?: boolean
   consumeChild?: boolean
+}
+
+type LevelCardPoolRecord = {
+  id: ScopedLevelId
+  cardDefinitionIds: string[]
 }
 
 function getRuleInputDefinitionIds(rule: RawCardOutputRuleRecord) {
@@ -114,6 +123,22 @@ export const cardOutputRules = (cardOutputs as RawCardOutputRuleRecord[]).map(
   normalizeCardOutputRule,
 )
 export const cardDefinitionMap = new Map(cardDefinitions.map((card) => [card.id, card]))
+const rawLevelCardPools = levelCardPools as LevelCardPoolRecord[]
+const levelCardPoolMap = new Map(
+  rawLevelCardPools.map((level) => [level.id, new Set(level.cardDefinitionIds)]),
+)
+const cardDefinitionMapByLevelId = new Map(
+  rawLevelCardPools.map((level) => [
+    level.id,
+    new Map(
+      level.cardDefinitionIds.flatMap((definitionId) => {
+        const definition = cardDefinitionMap.get(definitionId)
+
+        return definition ? [[definitionId, definition] as const] : []
+      }),
+    ),
+  ]),
+)
 
 export const initialTableCardKinds: InitialTableCardRecord[] = [
   {
@@ -181,6 +206,46 @@ export function createTableCardFromDefinition(
     refillStartedAtMs: null,
     refillDurationMs: null,
   }
+}
+
+export function getCardDefinitionMapForLevel(levelId: ScopedLevelId | null) {
+  if (!levelId) {
+    return cardDefinitionMap
+  }
+
+  return cardDefinitionMapByLevelId.get(levelId) ?? cardDefinitionMap
+}
+
+export function getCardDefinitionForLevel(
+  levelId: ScopedLevelId | null,
+  definitionId: string,
+) {
+  return getCardDefinitionMapForLevel(levelId).get(definitionId) ?? null
+}
+
+export function isCardDefinitionAllowedForLevel(
+  levelId: ScopedLevelId | null,
+  definitionId: string,
+) {
+  if (!levelId) {
+    return true
+  }
+
+  return levelCardPoolMap.get(levelId)?.has(definitionId) ?? false
+}
+
+export function getCardOutputRulesForLevel(levelId: ScopedLevelId | null) {
+  if (!levelId) {
+    return cardOutputRules
+  }
+
+  return cardOutputRules.filter((rule) => {
+    if (!rule.allowedLevelIds || rule.allowedLevelIds.length === 0) {
+      return levelId === 'main'
+    }
+
+    return rule.allowedLevelIds.includes(levelId)
+  })
 }
 
 export const initialCards: TableCard[] = initialTableCardKinds

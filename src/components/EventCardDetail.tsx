@@ -1,5 +1,9 @@
 import eventCardData from '../data/Event_Card.json'
-import { cardDefinitionMap, cardOutputRules } from '../game/cardData'
+import {
+  getCardDefinitionMapForLevel,
+  getCardOutputRulesForLevel,
+} from '../game/cardData'
+import type { LevelId } from '../game/levels'
 import type { CardDefinitionRecord, TableCard } from '../game/types'
 
 type EventCardRuleRecord = {
@@ -87,6 +91,7 @@ function buildUsageHint(inputNames: string[]) {
 }
 
 export function EventCardDetail({
+  currentLevelId,
   card,
   cards,
   definition,
@@ -94,6 +99,7 @@ export function EventCardDetail({
   nowMs,
   onClose,
 }: {
+  currentLevelId: LevelId
   card: TableCard
   cards: TableCard[]
   definition: CardDefinitionRecord
@@ -101,9 +107,10 @@ export function EventCardDetail({
   nowMs: number
   onClose: () => void
 }) {
+  const activeCardDefinitionMap = getCardDefinitionMapForLevel(currentLevelId)
   const visibleDefinitionIdSet = new Set(cards.map((tableCard) => tableCard.definitionId))
   const seenDefinitionIdSet = new Set(seenDefinitionIds)
-  const usableRules = cardOutputRules.filter(
+  const usableRules = getCardOutputRulesForLevel(currentLevelId).filter(
     (rule) => rule.inputDefinitionIds.includes(definition.id),
   )
   const eventCardDefinition = eventCardMap.get(definition.id)
@@ -127,7 +134,7 @@ export function EventCardDetail({
             (inputId) => inputId !== definition.id,
           )
           const inputNames = inputDefinitionIds.map(
-            (inputId) => cardDefinitionMap.get(inputId)?.name ?? inputId,
+            (inputId) => activeCardDefinitionMap.get(inputId)?.name ?? inputId,
           )
 
           return {
@@ -145,7 +152,7 @@ export function EventCardDetail({
   const decaySeconds =
     typeof card.decayAtMs === 'number' ? Math.max(0, Math.ceil((card.decayAtMs - nowMs) / 1000)) : null
   const decayOutputNames = (card.decayOutputDefinitionIds ?? []).map(
-    (definitionId) => cardDefinitionMap.get(definitionId)?.name ?? definitionId,
+    (definitionId) => activeCardDefinitionMap.get(definitionId)?.name ?? definitionId,
   )
 
   return (

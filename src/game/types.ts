@@ -31,7 +31,7 @@ export type DragState = {
   offsetY: number
   startClientX: number
   startClientY: number
-  source?: 'board' | 'tray' | 'mother'
+  source?: 'board' | 'tray' | 'mother' | 'supply'
 }
 
 export type CardDefinitionRecord = {
