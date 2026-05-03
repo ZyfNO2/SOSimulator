@@ -18,6 +18,9 @@ import {
   type StoryState,
 } from './game/story'
 
+const BGM_AUDIO_SRC = '/audio/Google%20Gemini.mp3'
+const BGM_DEFAULT_VOLUME = 0.35
+
 function App() {
   const boardRef = useRef<HTMLDivElement | null>(null)
   const trayRef = useRef<HTMLDivElement | null>(null)
@@ -36,6 +39,8 @@ function App() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [storyState, setStoryState] = useState<StoryState>(INITIAL_STORY_STATE)
   const [seenDefinitionIds, setSeenDefinitionIds] = useState<string[]>([])
+  const [bgmVolume, setBgmVolume] = useState(BGM_DEFAULT_VOLUME)
+  const bgmAudioRef = useRef<HTMLAudioElement | null>(null)
   const [portraitFlashUntilByDefinitionId, setPortraitFlashUntilByDefinitionId] = useState<
     Partial<Record<'kyon' | 'haruhi' | 'asahina' | 'nagato' | 'koizumi', number>>
   >({})
@@ -75,6 +80,64 @@ function App() {
       })),
     })
   }, [])
+
+  useEffect(() => {
+    const audio = new Audio(BGM_AUDIO_SRC)
+    audio.loop = true
+    audio.volume = bgmVolume
+    bgmAudioRef.current = audio
+
+    return () => {
+      audio.pause()
+      audio.src = ''
+      bgmAudioRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!bgmAudioRef.current) {
+      return
+    }
+
+    bgmAudioRef.current.volume = bgmVolume
+  }, [bgmVolume])
+
+  useEffect(() => {
+    const audio = bgmAudioRef.current
+
+    if (!audio) {
+      return
+    }
+
+    if (!hasStarted || !currentLevelId) {
+      audio.pause()
+      audio.currentTime = 0
+      return
+    }
+
+    let disposed = false
+    const tryPlay = () => {
+      void audio.play().catch(() => {
+        // Ignore autoplay restrictions and wait for next interaction.
+      })
+    }
+
+    const handlePointerDown = () => {
+      if (disposed) {
+        return
+      }
+
+      tryPlay()
+    }
+
+    tryPlay()
+    window.addEventListener('pointerdown', handlePointerDown)
+
+    return () => {
+      disposed = true
+      window.removeEventListener('pointerdown', handlePointerDown)
+    }
+  }, [currentLevelId, hasStarted])
 
   const triggerCharacterPortraitFlash = useCallback((definitionIds: string[]) => {
     const flashUntilMs = Date.now() + 5000
@@ -214,6 +277,17 @@ function App() {
       >
         ← 返回
       </button>
+      <section className="bgm-volume-control" aria-label="背景音乐音量控制">
+        <span className="bgm-volume-label">BGM</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={Math.round(bgmVolume * 100)}
+          onChange={(event) => setBgmVolume(Number(event.target.value) / 100)}
+        />
+      </section>
       <CardBoard
         boardRef={boardRef}
         cards={cards}

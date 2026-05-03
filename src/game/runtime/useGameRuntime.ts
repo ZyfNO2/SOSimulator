@@ -61,6 +61,7 @@ const CHAPTER1_FOUNDATION_RULE_ID = 'sos-foundation-kyon-haruhi'
 const CHAPTER1_FOUNDATION_AUDIO_SRC = '/audio/1-凉宫.mp3'
 const CHAPTER1_FOUNDATION_AUDIO_MAX_MS = 20000
 const CHAPTER1_FOUNDATION_AUDIO_VOLUME = 0.1
+const CHAPTER1_FOUNDATION_AUDIO_ENABLED = false
 
 function isWeatherDefinitionId(definitionId: string) {
   return WEATHER_DEFINITION_IDS.includes(
@@ -1132,7 +1133,7 @@ export function useGameRuntime({
             inputs: run.inputCardIds,
             outputs: run.outputDefinitionIds,
           })
-          if (run.ruleId === CHAPTER1_FOUNDATION_RULE_ID) {
+          if (CHAPTER1_FOUNDATION_AUDIO_ENABLED && run.ruleId === CHAPTER1_FOUNDATION_RULE_ID) {
             playAudioEffect(
               CHAPTER1_FOUNDATION_AUDIO_SRC,
               CHAPTER1_FOUNDATION_AUDIO_MAX_MS,
