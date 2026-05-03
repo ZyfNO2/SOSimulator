@@ -642,6 +642,99 @@
   transform: translateY(1px);
 }
 
+.level-select-panel {
+  width: min(720px, calc(100vw - 40px));
+}
+
+.level-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 18px 16px;
+  border: 1px solid rgba(255, 228, 190, 0.2);
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(67, 50, 38, 0.72), rgba(30, 22, 16, 0.82)),
+    rgba(30, 22, 16, 0.78);
+  color: rgba(255, 246, 233, 0.88);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.level-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(255, 228, 190, 0.4);
+  box-shadow: 0 16px 32px rgba(12, 8, 6, 0.28);
+}
+
+.level-card:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.level-card.is-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.level-card-name {
+  font-family: var(--heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 239, 219, 0.95);
+}
+
+.level-card-desc {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(255, 239, 219, 0.7);
+}
+
+.level-card-lock {
+  font-size: 0.74rem;
+  color: rgba(241, 200, 154, 0.7);
+  margin-top: 4px;
+}
+
+.back-to-menu-button {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 100;
+  padding: 8px 16px;
+  border: 1px solid rgba(58, 43, 29, 0.2);
+  background: rgba(248, 242, 232, 0.82);
+  backdrop-filter: blur(10px);
+  color: var(--text-strong);
+  font-family: var(--heading);
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(33, 23, 14, 0.12);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.back-to-menu-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(33, 23, 14, 0.18);
+}
+
+.back-to-menu-button:active {
+  transform: translateY(1px);
+}
+
 @keyframes card-spawn {
   0% {
     transform: translate(var(--spawn-origin-x), var(--spawn-origin-y)) scale(0.16)

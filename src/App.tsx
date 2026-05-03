@@ -6,7 +6,6 @@ import { MainlineTray } from './components/MainlineTray'
 import {
   cardDefinitionMap,
   createTableCardFromDefinition,
-  initialCards,
 } from './game/cardData'
 import {
   CARD_HEIGHT,
@@ -21,6 +20,7 @@ import {
   RESOURCE_MOTHER_REFILL_MS,
   WEATHER_STAGE_ADVANCE_MS,
 } from './game/constants'
+import { allLevels, getLevelConfig, type LevelId } from './game/levels'
 import {
   getProductionAnchor,
   consumeProductionCards,
@@ -132,7 +132,10 @@ function App() {
   const settledProductionIdsRef = useRef<Set<string>>(new Set())
   const settledWeatherTimerKeysRef = useRef<Set<string>>(new Set())
   const startOverlayTimeoutRef = useRef<number | null>(null)
-  const [cards, setCards] = useState(initialCards)
+  const [currentLevelId, setCurrentLevelId] = useState<LevelId | null>(null)
+  const levelConfig = currentLevelId ? getLevelConfig(currentLevelId) : null
+  const initialLevelCards = levelConfig?.initialCards ?? []
+  const [cards, setCards] = useState<TableCard[]>(initialLevelCards)
   const [archivedCards, setArchivedCards] = useState<TableCard[]>([])
   const [isTrayOpen, setIsTrayOpen] = useState(false)
   const [draggingStackIds, setDraggingStackIds] = useState<string[] | null>(null)
@@ -144,7 +147,7 @@ function App() {
   const [isStartOverlayVisible, setIsStartOverlayVisible] = useState(true)
   const [isStartingGame, setIsStartingGame] = useState(false)
   const [seenDefinitionIds, setSeenDefinitionIds] = useState<string[]>(() => [
-    ...new Set(initialCards.map((card) => card.definitionId)),
+    ...new Set(initialLevelCards.map((card) => card.definitionId)),
   ])
   const hasDecayingCards = cards.some((card) => typeof card.decayAtMs === 'number')
   const hasSpawningCards = cards.some(
@@ -166,6 +169,30 @@ function App() {
       })),
     })
   }, [])
+
+  useEffect(() => {
+    if (currentLevelId) {
+      const config = getLevelConfig(currentLevelId)
+      setCards(config.initialCards)
+      setSeenDefinitionIds([
+        ...new Set(config.initialCards.map((card) => card.definitionId)),
+      ])
+      setStoryState(INITIAL_STORY_STATE)
+      setArchivedCards([])
+      setProductions([])
+      setSelectedCardId(null)
+      setDraggingStackIds(null)
+      setHasStarted(false)
+      setIsStartOverlayVisible(true)
+      setIsStartingGame(false)
+      settledProductionIdsRef.current.clear()
+      settledWeatherTimerKeysRef.current.clear()
+      productionSequenceRef.current = 0
+      instanceSequenceRef.current = 0
+      dragRef.current = null
+      suppressClickRef.current = false
+    }
+  }, [currentLevelId])
 
   useEffect(() => {
     return () => {
@@ -1181,12 +1208,60 @@ function App() {
     }, 420)
   }
 
+  const handleSelectLevel = (levelId: LevelId) => {
+    setCurrentLevelId(levelId)
+  }
+
+  const handleBackToMenu = () => {
+    setCurrentLevelId(null)
+    setCards([])
+    setHasStarted(false)
+    setIsStartOverlayVisible(true)
+    setIsStartingGame(false)
+  }
+
+  if (!currentLevelId) {
+    return (
+      <main className="playground is-waiting-start">
+        <section className="start-screen" aria-label="关卡选择">
+          <div className="start-screen-panel level-select-panel">
+            <p className="start-screen-label">SOSimulator</p>
+            <h1>选择关卡</h1>
+            <div className="level-select-grid">
+              {allLevels.map((level) => (
+                <button
+                  key={level.id}
+                  type="button"
+                  className={`level-card${level.isLocked ? ' is-locked' : ''}`}
+                  onClick={() => !level.isLocked && handleSelectLevel(level.id)}
+                  disabled={level.isLocked}
+                >
+                  <span className="level-card-name">{level.name}</span>
+                  <span className="level-card-desc">{level.description}</span>
+                  {level.isLocked && <span className="level-card-lock">🔒 锁定</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main
       className={`playground${!hasStarted ? ' is-waiting-start' : ''}${
         isStartingGame ? ' is-starting-game' : ''
       }`}
     >
+      <button
+        type="button"
+        className="back-to-menu-button"
+        onClick={handleBackToMenu}
+        aria-label="返回关卡选择"
+      >
+        ← 返回
+      </button>
       <CardBoard
         boardRef={boardRef}
         cards={cards}
@@ -1226,9 +1301,9 @@ function App() {
         >
           <div className="start-screen-panel">
             <p className="start-screen-label">SOSimulator</p>
-            <h1>失物招领室的神明</h1>
+            <h1>{levelConfig?.name ?? '失物招领室的神明'}</h1>
             <p className="start-screen-copy">
-              点下开始，让桌面上的线索一张张浮现。之后你就可以拖动卡牌，推进这场被蓝伞拧歪的日常。
+              {levelConfig?.description ?? '点下开始，让桌面上的线索一张张浮现。'}
             </p>
             <button type="button" className="start-screen-button" onClick={handleStartGame}>
               开始
