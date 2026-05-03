@@ -81,6 +81,48 @@
   pointer-events: none;
 }
 
+.background-portrait-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.background-portrait {
+  position: absolute;
+  height: 52vh;
+  max-height: 420px;
+  width: auto;
+  object-fit: contain;
+  filter: saturate(0.86) brightness(0.9);
+  transition: opacity 200ms linear;
+}
+
+.background-portrait.slot-kyon {
+  left: 2%;
+  bottom: 2%;
+}
+
+.background-portrait.slot-haruhi {
+  left: 21%;
+  bottom: 4%;
+}
+
+.background-portrait.slot-asahina {
+  left: 41%;
+  bottom: 2%;
+}
+
+.background-portrait.slot-nagato {
+  left: 61%;
+  bottom: 4%;
+}
+
+.background-portrait.slot-koizumi {
+  left: 80%;
+  bottom: 2%;
+}
+
 .background-slide-text {
   position: absolute;
   display: block;

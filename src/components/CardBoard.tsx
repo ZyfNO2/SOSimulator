@@ -1,5 +1,6 @@
 import type { MutableRefObject, PointerEvent as ReactPointerEvent } from 'react'
 import { BackgroundSlideText } from './BackgroundSlideText'
+import { BackgroundCharacterPortraits } from './BackgroundCharacterPortraits'
 import { CardView } from './CardView'
 import { ProductionEffect } from './ProductionEffect'
 import type { ProductionRun, TableCard } from '../game/types'
@@ -17,6 +18,7 @@ export function CardBoard({
   productions,
   draggingStackIds,
   nowMs,
+  portraitFlashUntilByDefinitionId,
   storyState,
   hasStarted,
   onPointerDown,
@@ -29,6 +31,9 @@ export function CardBoard({
   productions: ProductionRun[]
   draggingStackIds: string[] | null
   nowMs: number
+  portraitFlashUntilByDefinitionId: Partial<
+    Record<'kyon' | 'haruhi' | 'asahina' | 'nagato' | 'koizumi', number>
+  >
   storyState: StoryState
   hasStarted: boolean
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>, cardId: string) => void
@@ -54,6 +59,9 @@ export function CardBoard({
     <section ref={boardRef} className="table" aria-label="游戏桌面空地">
       <div className="table-noise" aria-hidden="true" />
       <BackgroundSlideText cards={cards} storyState={storyState} />
+      <BackgroundCharacterPortraits
+        portraitFlashUntilByDefinitionId={portraitFlashUntilByDefinitionId}
+      />
 
       {productions.map((run) => (
         <ProductionEffect key={run.id} run={run} nowMs={nowMs} cards={cards} />

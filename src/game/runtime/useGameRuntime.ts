@@ -60,6 +60,7 @@ const CHAPTER4_INTEL_DEFINITION_IDS = [
 const CHAPTER1_FOUNDATION_RULE_ID = 'sos-foundation-kyon-haruhi'
 const CHAPTER1_FOUNDATION_AUDIO_SRC = '/audio/1-凉宫.mp3'
 const CHAPTER1_FOUNDATION_AUDIO_MAX_MS = 20000
+const CHAPTER1_FOUNDATION_AUDIO_VOLUME = 0.1
 
 function isWeatherDefinitionId(definitionId: string) {
   return WEATHER_DEFINITION_IDS.includes(
@@ -167,8 +168,11 @@ function lockCharacterCards(currentCards: TableCard[], cardIds: string[]) {
   )
 }
 
-function playAudioEffect(src: string, maxPlayMs?: number) {
+function playAudioEffect(src: string, maxPlayMs?: number, volume?: number) {
   const audio = new Audio(src)
+  if (typeof volume === 'number') {
+    audio.volume = Math.min(Math.max(volume, 0), 1)
+  }
 
   if (typeof maxPlayMs === 'number' && maxPlayMs > 0) {
     const stopTimerId = window.setTimeout(() => {
@@ -205,6 +209,7 @@ type UseGameRuntimeArgs = {
   setNowMs: Dispatch<SetStateAction<number>>
   setDraggingStackIds: Dispatch<SetStateAction<string[] | null>>
   setSelectedCardId: Dispatch<SetStateAction<string | null>>
+  triggerCharacterPortraitFlash: (definitionIds: string[]) => void
   dragRef: MutableRefObject<DragState | null>
   suppressClickRef: MutableRefObject<boolean>
   instanceSequenceRef: MutableRefObject<number>
@@ -228,6 +233,7 @@ export function useGameRuntime({
   setNowMs,
   setDraggingStackIds,
   setSelectedCardId,
+  triggerCharacterPortraitFlash,
   dragRef,
   suppressClickRef,
   instanceSequenceRef,
@@ -495,10 +501,11 @@ export function useGameRuntime({
 
       return nextCards
     })
+    triggerCharacterPortraitFlash(['haruhi'])
     void logGameEvent('chapter3', 'Haruhi pulse captured a region', {
       triggerCardId: activeHaruhiCard.id,
     })
-  }, [cards, nowMs, setCards, instanceSequenceRef])
+  }, [cards, nowMs, setCards, instanceSequenceRef, triggerCharacterPortraitFlash])
 
   useEffect(() => {
     const hasBothResolves =
@@ -1126,7 +1133,17 @@ export function useGameRuntime({
             outputs: run.outputDefinitionIds,
           })
           if (run.ruleId === CHAPTER1_FOUNDATION_RULE_ID) {
-            playAudioEffect(CHAPTER1_FOUNDATION_AUDIO_SRC, CHAPTER1_FOUNDATION_AUDIO_MAX_MS)
+            playAudioEffect(
+              CHAPTER1_FOUNDATION_AUDIO_SRC,
+              CHAPTER1_FOUNDATION_AUDIO_MAX_MS,
+              CHAPTER1_FOUNDATION_AUDIO_VOLUME,
+            )
+          }
+          const portraitDefinitionIds = run.inputCardIds
+            .map((cardId) => nextCards.find((card) => card.id === cardId)?.definitionId ?? null)
+            .filter((definitionId): definitionId is string => Boolean(definitionId))
+          if (portraitDefinitionIds.length > 0) {
+            triggerCharacterPortraitFlash(portraitDefinitionIds)
           }
           const anchor = getProductionAnchor(nextCards, run)
           const isChapter4DialogueRun =
@@ -1280,7 +1297,17 @@ export function useGameRuntime({
         return nextCards
       })
     })
-  }, [boardRef, cards, instanceSequenceRef, nowMs, productions, setCards, setProductions, settledProductionIdsRef])
+  }, [
+    boardRef,
+    cards,
+    instanceSequenceRef,
+    nowMs,
+    productions,
+    setCards,
+    setProductions,
+    settledProductionIdsRef,
+    triggerCharacterPortraitFlash,
+  ])
 
   useEffect(() => {
     if (!hasDecayingCards) {

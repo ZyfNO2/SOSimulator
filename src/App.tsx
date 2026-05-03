@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { CardBoard } from './components/CardBoard'
 import { EventCardDetail } from './components/EventCardDetail'
@@ -36,6 +36,9 @@ function App() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [storyState, setStoryState] = useState<StoryState>(INITIAL_STORY_STATE)
   const [seenDefinitionIds, setSeenDefinitionIds] = useState<string[]>([])
+  const [portraitFlashUntilByDefinitionId, setPortraitFlashUntilByDefinitionId] = useState<
+    Partial<Record<'kyon' | 'haruhi' | 'asahina' | 'nagato' | 'koizumi', number>>
+  >({})
   const {
     currentLevelId,
     levelConfig,
@@ -73,6 +76,35 @@ function App() {
     })
   }, [])
 
+  const triggerCharacterPortraitFlash = useCallback((definitionIds: string[]) => {
+    const flashUntilMs = Date.now() + 5000
+    setPortraitFlashUntilByDefinitionId((current) => {
+      const next = { ...current }
+      let hasChanges = false
+
+      for (const definitionId of definitionIds) {
+        if (
+          definitionId !== 'kyon' &&
+          definitionId !== 'haruhi' &&
+          definitionId !== 'asahina' &&
+          definitionId !== 'nagato' &&
+          definitionId !== 'koizumi'
+        ) {
+          continue
+        }
+
+        if ((next[definitionId] ?? 0) >= flashUntilMs) {
+          continue
+        }
+
+        next[definitionId] = flashUntilMs
+        hasChanges = true
+      }
+
+      return hasChanges ? next : current
+    })
+  }, [])
+
   useGameRuntime({
     currentLevelId,
     boardRef,
@@ -88,6 +120,7 @@ function App() {
     setNowMs,
     setDraggingStackIds,
     setSelectedCardId,
+    triggerCharacterPortraitFlash,
     dragRef,
     suppressClickRef,
     instanceSequenceRef,
@@ -187,6 +220,7 @@ function App() {
         productions={productions}
         draggingStackIds={draggingStackIds}
         nowMs={nowMs}
+        portraitFlashUntilByDefinitionId={portraitFlashUntilByDefinitionId}
         storyState={storyState}
         hasStarted={hasStarted}
         onPointerDown={handlePointerDown}
